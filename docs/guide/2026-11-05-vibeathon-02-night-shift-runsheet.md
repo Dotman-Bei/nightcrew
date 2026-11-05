@@ -1,0 +1,98 @@
+# Runsheet: Vibeathon 02 "Night shift"
+
+Last updated: 2026-11-05 by the guide seat (about 15:30 UTC). No Step 0a pack exists. Event facts below come from the guide's own fetch of the pages named under Event, read through a page-summarising fetch tool, so they are **unverified against the rendered pages**. Step 0 re-reads the rules page and the page wins on any difference.
+
+## Event
+
+- **Name:** Vibeathon 02 "Night shift" (Vibestarter, "the vibecoding championship, built on Base").
+- **URLs:** event https://app.vibestarter.xyz/vibeathon · rules https://blog.vibestarter.xyz/vibeathon-02 · submit https://app.vibestarter.xyz/vibeathon/submit · Base docs https://docs.base.org
+- **Deadline:** every deadline is at 22:00 UTC. Build window 2 Nov to **Mon 2026-11-09 22:00 UTC** (= 23:00 UTC+1). Judging and community vote 9 to 16 Nov; winners after the vote closes. Submissions stay editable until the build window closes, so file early and edit after.
+- **Judging (reported weights):** Execution 30% ("does it work, end to end?") · Launch potential 25% ("would people back it?") · Originality 20% · Craft and UX 15% · Vibecoding leverage 10% (how well AI tools were used). A panel plus special judges (not yet named). Final score is the average of all scorecards, with the **$VIBES holders' vote counted as one extra scorecard**: the most-voted entry scores 100, others scale in proportion, **an entry with no votes scores 10**. Holders sign a message to vote (no gas); weight is $VIBES held or staked on Base when the build window closed; platform and team wallets cannot vote and nobody can vote for their own entry.
+- **Must ship:** a working MVP people can actually use, at a **live URL**; pitch in one line; where to try it. Base is suggested, not required; no contracts or specific tech required. Optional: a Fundable result link shown to judges (not in the rubric).
+- **Prizes ($1,000 cash):** 1st $500 · 2nd $250 · 3rd $125 · 4th $75 · 5th $50, plus Starter Card points down to 10th. Strong entries may be invited to raise on Vibestarter (Base or Robinhood Chain); no guaranteed slot. **If invited to raise, entrants commit to launching the project on Vibestarter**, and the introductory post says "build something you genuinely intend to launch". Pick an idea you would actually launch.
+- **Tracks:** none. One leaderboard. Sponsor: Vibestarter only (50 Claude Pro seats; seat holders must submit or the seat may be revoked).
+- **Unknowns, none resolved by the guide:** whether the application (open 26 Oct to 2 Nov, now closed) was mandatory to submit; what the submit page asks for and how it signs in (static fetch shows only "Authenticating..."); Vibeathon 01 results (not found on the blog); special judges' names.
+
+## Project repo
+
+- `Dotman-Bei/vibeathon-02-night-shift-2026`, private, **pipeline-created by the guide** on 2026-11-05 per `references/repo-bootstrap.md`. Local clone: `C:\Users\bamig\Documents\VIBE CODE\Hackathons\vibeathon-02-night-shift-2026` (next to the kit, not inside it). idea-forge renames it to the project slug at Step 4 and records the new name here.
+- Making it public is consent-gated and happens at submission, if at all (Vibecoding leverage is easier to judge with a visible repo; the user decides).
+
+## Kit
+
+- `C:\Users\bamig\Documents\VIBE CODE\Hackathons\build-system`, at `origin/main` 230bbc8, clean, read-only. The prompt's `~/hackathons/build-system` does not exist on this machine, so every kickoff carries the real path in its KIT line.
+- `gh` full path (for kickoffs, in case a session's PATH lacks it): `C:\Users\bamig\AppData\Local\Programs\GitHub CLI\bin\gh.exe`.
+
+## Tollgate
+
+- Report: `docs/tollgate/2026-11-05-tollgate.md`, run by the guide (0a skipped).
+- **Verdicts:** 0a SKIPPED · 0 CLEAR · 1 CLEAR · 2 PENDING (stack rows, row 18) · 2.5 SKIPPED · 3 BLOCKED on row 5 (Chrome extension not connected in the guide session; connect it, re-probe before the Step 3 kickoff).
+- Routing: knobs `per-spawn`; tier-to-model ids not yet probe-verified (orchestrator boot); no routing-defeating variables; user settings default effort `xhigh`, so the effort named in each kickoff is set by hand every session.
+
+## Goal
+
+- **Assumed, not stated** (the prompt left the field as a template): finish in the top 5 (cash plus Starter Card points) and be a credible Wave 1 candidate. There are no tracks to win. Correct this line if the goal differs.
+- **Skills assumed from the user's GitHub history** (about 30 repos: Solidity and EVM chains, TypeScript, Next.js-style apps): Solidity/EVM, TypeScript/React. Correct if wrong.
+
+## Calendar
+
+- About **102 hours** left at 2026-11-05 15:30 UTC. User availability and sleep hours not given; the plan assumes the user's attention, not the clock, is the scarce resource.
+
+| Target (UTC) | Milestone |
+|---|---|
+| Thu Nov 5, by 20:00 | Step 0 done and verified; calendar-fit call on the winning idea |
+| Fri Nov 6, by 12:00 | Step 1 approved (design dialogue needs the user); concierge preflight (hosting account, any keys) starts in parallel |
+| Sun Nov 8, 12:00 | Build green; frontend pages done; **feature freeze** |
+| Sun Nov 8, 20:00 | Deployed to the live URL and smoke-tested from a logged-out browser |
+| Mon Nov 9, 12:00 | Submission filed by the user (10 hours of buffer; editable afterward until 22:00) |
+| Mon Nov 9, 22:00 | Hard close |
+
+## Strategy decisions
+
+- **Mode:** guided. First Vibestarter campaign, and the user approves each baton.
+- **Steps:** skip 0a; run 0, 1, 2, 3 (preflight in parallel with the build, closing after green); skip 2.5 by default.
+  - Skip 0a: one sponsor and no SDK, no tracks, no judging ambiguity beyond one page already read; the portal's one JS-gated page (submit) cannot be read by an extractor that never logs in; Chrome tools are not connected here. Cost of skipping: idea-forge gets the event facts in its kickoff and does its own prior-art search.
+  - Skip 2.5: the submission asks for a live URL, not a video. Revisit only if the build is green with 12 or more hours of buffer; the vote is won by people who understand the product in under a minute, and a 60-second cut could help, but it is optional.
+  - Keep 3: the live URL needs a hosting account and a deploy, and the submit page needs a sign-in the user performs.
+- **Tracks:** none exist, so the shortlist becomes the **rubric levers** (reason: published weights).
+  1. Execution 30% + Launch potential 25% = 55%: one end-to-end flow that visibly works on the live URL, for a user a Vibestarter backer can picture.
+  2. Holder vote (a full scorecard; 10 points for zero votes): a product the Base and $VIBES crowd grasps in one screen and wants to share. A zero-vote entry loses a whole scorecard's worth.
+  3. Vibecoding leverage 10% + Craft 15%: the committed spec, plans and a short "how it was built" section on the page show AI-tool use; the frontend skill covers craft.
+- **Risk appetite: `safe-feasible` (recommended).** Execution is the heaviest criterion and a live URL is mandatory; 102 hours is short; the unfamiliar parts (submit sign-in, holder vote) cannot be tested early. Switch to `novel-wow` only if the user knows a field this crowded rewards differentiation more than a clean demo; idea-forge still runs the judge's-eye head-to-head on originality either way.
+- **Sponsor depth:** none to extract. Vibestarter is the platform, not an SDK. If the chosen idea touches Base or $VIBES, idea-forge's feasibility notes carry live-verified addresses and signatures.
+
+## Frontend directive
+
+- User: follow `design-taste-frontend` for all frontend work; write `docs/FRONTEND.md` from the PRD without design questions; then build one page at a time from it, running the dev server after each page and fixing layout breaks and anything generic.
+- Guide handling: no PRD exists yet, and the guide writes no spec, plan or product code (its own boundary and the prompt's). The directive is carried into the **architect kickoff** (write `docs/FRONTEND.md` from the approved spec, with the sections the user listed) and the **orchestrator kickoff** (build pages in its order, dev-server check after each). The user may overrule this.
+- Skill location: `C:\Users\bamig\Documents\VIBE CODE\Hackathons\.claude\skills\design-taste-frontend\SKILL.md`. It sits above this repo, is 38 MB (1,617 files), and is not committed. Kickoffs point at the absolute path.
+- Scope note: the skill targets public company and product sites and says app screens must not look like a generic dashboard. For this event the public face (hero, how it works, a try-it entry) carries Launch potential and the vote; app screens follow the same system. The architect sizes the frontend against Craft and UX being 15% and Execution 30%.
+
+## Local environment notes
+
+- Windows build 21996: no Docker Desktop. Plans must not require it.
+- Node 22.17.1, npm 10.9.2, git 2.54.0.
+
+## Step status
+
+| Step | Status | Artifact | Verification | Seat settings |
+|---|---|---|---|---|
+| Guide | open | this runsheet | n/a | `claude-sonnet-5-5`, stated; effort `high` per the prompt (user-attested) |
+| 0a | skipped | none | n/a | n/a |
+| 0 idea-forge | pending | `docs/idea-forge/<date>-<slug>-brief.md` | n/a | to run at `opus` + `max` |
+| 1 architect | pending | n/a | n/a | to run at `opus` + `xhigh` |
+| 2 orchestrator | pending | n/a | n/a | to run at `opus` + `high` |
+| 2.5 demo-studio | skipped by default | n/a | n/a | n/a |
+| 3 gate-concierge | pending | n/a | n/a | preflight `sonnet` + `high`; closing `opus` + `high` |
+
+## Next action
+
+- User pastes the **Step 0 (idea-forge) kickoff** in a new chat tab in a VS Code window opened on `C:\Users\bamig\Documents\VIBE CODE\Hackathons\vibeathon-02-night-shift-2026`, at `opus` + `max`.
+- Guide then verifies the brief (committed and pushed, all fields, feasibility notes, repo rename) and makes the calendar-fit call.
+
+## Open blockers
+
+- **User to check now, in parallel (does not block Step 0):** can you actually submit? Open https://app.vibestarter.xyz/vibeathon/submit signed in, and look for your application confirmation (applications closed 2 Nov). The rules page does not say applying is mandatory, but nothing the guide could read says it is not.
+- User to confirm or correct the assumed goal and skills (above) before pasting the Step 0 kickoff.
+- Tollgate row 5 (Chrome extension) fails in the guide session; needed before Step 3.
+- Special judges unnamed; Vibeathon 01 results not found.
