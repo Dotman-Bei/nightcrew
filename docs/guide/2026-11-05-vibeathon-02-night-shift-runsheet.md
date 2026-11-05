@@ -26,7 +26,7 @@ Last updated: 2026-11-05 by the guide seat (about 15:30 UTC). No Step 0a pack ex
 ## Tollgate
 
 - Report: `docs/tollgate/2026-11-05-tollgate.md`, run by the guide (0a skipped).
-- **Verdicts:** 0a SKIPPED · 0 CLEAR · 1 CLEAR · 2 PENDING (stack rows, row 18) · 2.5 SKIPPED · 3 BLOCKED on row 5 (Chrome extension not connected in the guide session; connect it, re-probe before the Step 3 kickoff).
+- **Verdicts:** 0a SKIPPED · 0 CLEAR · 1 CLEAR · 2 PENDING (stack rows, row 18) · 2.5 SKIPPED · 3 CLEAR on the guide-session probe (row 5 failed at first, passed after the user connected the Chrome extension); the Step 3 session re-probes row 5 at its own boot.
 - Routing: knobs `per-spawn`; tier-to-model ids not yet probe-verified (orchestrator boot); no routing-defeating variables; user settings default effort `xhigh`, so the effort named in each kickoff is set by hand every session.
 
 ## Goal
@@ -94,5 +94,5 @@ Last updated: 2026-11-05 by the guide seat (about 15:30 UTC). No Step 0a pack ex
 
 - **User to check now, in parallel (does not block Step 0):** can you actually submit? Open https://app.vibestarter.xyz/vibeathon/submit signed in, and look for your application confirmation (applications closed 2 Nov). The rules page does not say applying is mandatory, but nothing the guide could read says it is not.
 - User to confirm or correct the assumed goal and skills (above) before pasting the Step 0 kickoff.
-- Tollgate row 5 (Chrome extension) fails in the guide session; needed before Step 3.
+- Tollgate row 5 (Chrome extension) passes in the guide session now; Step 3 still re-probes it in its own session, so keep Chrome open and the extension signed in.
 - Special judges unnamed; Vibeathon 01 results not found.
