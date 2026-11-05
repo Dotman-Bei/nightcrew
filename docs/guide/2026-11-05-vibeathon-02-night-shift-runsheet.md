@@ -1,6 +1,6 @@
 # Runsheet: Vibeathon 02 "Night shift"
 
-Last updated: 2026-11-05 by the guide seat (about 15:30 UTC). No Step 0a pack exists. Event facts below come from the guide's own fetch of the pages named under Event, read through a page-summarising fetch tool, so they are **unverified against the rendered pages**. Step 0 re-reads the rules page and the page wins on any difference.
+Last updated: 2026-11-05 by the guide seat (about 15:40 UTC, second guide session). No Step 0a pack exists. **Event facts below were re-verified at 15:27 UTC against the raw rules-page HTML (curl, not a summariser), the live event page (Chrome) and the V01 announcement post**: weights, deadline, prizes and holder-vote rules all match, and the live countdown (4d 06h 31m) matches Mon 9 Nov 22:00 UTC. The submit page was read only as far as its wallet gate. Step 0 should still re-read the rules page; the page wins on any difference.
 
 ## Event
 
@@ -11,7 +11,12 @@ Last updated: 2026-11-05 by the guide seat (about 15:30 UTC). No Step 0a pack ex
 - **Must ship:** a working MVP people can actually use, at a **live URL**; pitch in one line; where to try it. Base is suggested, not required; no contracts or specific tech required. Optional: a Fundable result link shown to judges (not in the rubric).
 - **Prizes ($1,000 cash):** 1st $500 · 2nd $250 · 3rd $125 · 4th $75 · 5th $50, plus Starter Card points down to 10th. Strong entries may be invited to raise on Vibestarter (Base or Robinhood Chain); no guaranteed slot. **If invited to raise, entrants commit to launching the project on Vibestarter**, and the introductory post says "build something you genuinely intend to launch". Pick an idea you would actually launch.
 - **Tracks:** none. One leaderboard. Sponsor: Vibestarter only (50 Claude Pro seats; seat holders must submit or the seat may be revoked).
-- **Unknowns, none resolved by the guide:** whether the application (open 26 Oct to 2 Nov, now closed) was mandatory to submit; what the submit page asks for and how it signs in (static fetch shows only "Authenticating..."); Vibeathon 01 results (not found on the blog); special judges' names.
+- **Theme:** "Night shift" (a ten-storey tower at night in the rain, a green `>_` on its roof, 50 windows for the 50 sponsored seats). It is the edition's branding; the rules page sets **no theme requirement** on entries. Optional flavour for Craft and UX only.
+- **Vibeathon 01 (prior art, found 2026-11-05 on the rules page):** 52 applications, 10 builds on the final shortlist. **Corvo Edge 1st, Onetoken 2nd**, both then opened raises on Vibestarter. Their product pages were not found by URL guess (`/projects/<slug>` 404) or web search; idea-forge looks them up. V01 post: https://blog.vibestarter.xyz/introducing-the-vibeathon (edition 1 rules: 3 places, two-week build, no holder vote).
+- **Field size:** a small field (V01 was about 50 applicants) makes a top-5 finish realistic for a clean, working, live MVP. V02 reach is wider (special judges, public vote page), so do not assume V02 stays that small.
+- **Submit page (read 2026-11-05):** https://app.vibestarter.xyz/vibeathon/submit shows "Identity required: Connect your wallet to link your submission to your entry." So filing is **wallet-gated** and tied to an existing entry. The V01 post says "Tell us who you are and what you want to build, and you're entered", so **applying = becoming an entry**. The submit form's fields stay unread until a wallet is connected (the user's action, never the guide's).
+- **Optional extra:** attach a Fundable result link (judges see the score beside the entry; not in the rubric). The architect adds it to the submission draft as a field; the closing pass has the user run it on the live URL.
+- **Unknowns, none resolved by the guide:** **whether the user applied by 2 Nov (top blocker, see below)**; the submit form's field list; special judges' names (announced "soon").
 
 ## Project repo
 
@@ -26,7 +31,7 @@ Last updated: 2026-11-05 by the guide seat (about 15:30 UTC). No Step 0a pack ex
 ## Tollgate
 
 - Report: `docs/tollgate/2026-11-05-tollgate.md`, run by the guide (0a skipped).
-- **Verdicts:** 0a SKIPPED · 0 CLEAR · 1 CLEAR · 2 PENDING (stack rows, row 18) · 2.5 SKIPPED · 3 CLEAR on the guide-session probe (row 5 failed at first, passed after the user connected the Chrome extension); the Step 3 session re-probes row 5 at its own boot.
+- **Verdicts:** 0a SKIPPED · 0 CLEAR · 1 CLEAR · 2 PENDING (stack rows, row 18) · 2.5 SKIPPED · 3 CLEAR to start (row 5 failed at first, passed after the user connected the Chrome extension; the Step 3 session re-probes it at its own boot); row 8 (wallet) is a user action at submission, see Open blockers.
 - Routing: knobs `per-spawn`; tier-to-model ids not yet probe-verified (orchestrator boot); no routing-defeating variables; user settings default effort `xhigh`, so the effort named in each kickoff is set by hand every session.
 
 ## Goal
@@ -92,7 +97,8 @@ Last updated: 2026-11-05 by the guide seat (about 15:30 UTC). No Step 0a pack ex
 
 ## Open blockers
 
-- **User to check now, in parallel (does not block Step 0):** can you actually submit? Open https://app.vibestarter.xyz/vibeathon/submit signed in, and look for your application confirmation (applications closed 2 Nov). The rules page does not say applying is mandatory, but nothing the guide could read says it is not.
-- User to confirm or correct the assumed goal and skills (above) before pasting the Step 0 kickoff.
-- Tollgate row 5 (Chrome extension) passes in the guide session now; Step 3 still re-probes it in its own session, so keep Chrome open and the extension signed in.
-- Special judges unnamed; Vibeathon 01 results not found.
+- **TOP RISK, user, 60 seconds, do before pasting Step 0:** confirm you applied by 2 Nov 22:00 UTC with the wallet you will submit from. On https://app.vibestarter.xyz/vibeathon/submit click CONNECT WALLET with that wallet: the page should recognise your entry. Applications are closed, so if there is no entry for that wallet, stop and tell the guide before spending a build on it (fallback: ask Vibestarter on their Discord/X whether late entries are accepted; the guide cannot fix this). Everything else in this runsheet assumes an entry exists.
+- User to confirm or correct the assumed goal and skills (above); the prompt's GOAL, SKILLS and CALENDAR fields were still template text in this session too.
+- **Step 3 needs the user's wallet** (tollgate row 8 now applies to Step 3, see the tollgate report): the submit page is wallet-gated, so the user connects the application wallet and signs in themselves; the concierge is never given the key.
+- Tollgate row 5 (Chrome extension) passes in the guide session; Step 3 still re-probes it in its own session, so keep Chrome open and the extension signed in.
+- Special judges unnamed. Corvo Edge and Onetoken product pages not yet located (idea-forge's job).
