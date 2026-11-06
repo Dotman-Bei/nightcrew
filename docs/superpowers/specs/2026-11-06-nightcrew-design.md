@@ -248,7 +248,7 @@ Parses with `parse5` and `acorn`, and rejects on any finding. Its job is to give
 
 **Extended rules (cut candidate 4).** They catch mistakes earlier and with clearer messages, but the runtime layers already contain what they cover:
 
-- **JS, banned as a bare name or a member name:** `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `RTCPeerConnection`, `sendBeacon`, `importScripts`, `Worker`, `SharedWorker`, `serviceWorker`, `postMessage`, `MessageChannel`, `BroadcastChannel`, `localStorage`, `sessionStorage`, `indexedDB`, `cookie`, `caches`, `eval`, `Function`, `__proto__`, `globalThis`, `defaultView`, `contentWindow`, `contentDocument`, `frameElement`, `ethereum`, `web3`, `solana`, `phantom`, `execCommand`, `__ncw`. Also `.constructor` as a member; a class's own `constructor` method is allowed.
+- **JS, banned as a bare name or a member name:** `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `RTCPeerConnection`, `sendBeacon`, `importScripts`, `Worker`, `SharedWorker`, `serviceWorker`, `postMessage`, `MessageChannel`, `BroadcastChannel`, `localStorage`, `sessionStorage`, `indexedDB`, `cookie`, `caches`, `eval`, `Function`, `__proto__`, `globalThis`, `defaultView`, `contentWindow`, `contentDocument`, `frameElement`, `srcElement`, `ethereum`, `web3`, `solana`, `phantom`, `execCommand`, `__ncw`. Also `.constructor` as a member; a class's own `constructor` method is allowed.
 - **JS, banned as a bare global only:** `self`, `top`, `parent`, `frames`, `open`, `opener`, `chrome`, `external`. Member uses such as `rect.top` and local variables of the same name are fine.
 - **`window`:** may only appear as the object of a static member access to an allowlisted name: `addEventListener`, `removeEventListener`, `innerWidth`, `innerHeight`, `devicePixelRatio`, `matchMedia`, `getComputedStyle`, `requestAnimationFrame`, `cancelAnimationFrame`, `setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`.
 - **String and template literals:** cooked values, so escapes do not hide content, are scanned for `ethereum`, `web3`, `solana`, `phantom`, `eip6963`, `metamask`, `http://`, `https://` and `javascript:`. Matching is case-sensitive, so a label like "Ethereum gas" passes.
@@ -273,9 +273,9 @@ The first script to run in every floor:
 - Defines non-configurable accessors returning `undefined` for `ethereum`, `web3`, `solana`, `phantom`, `coinbaseWalletExtension`, `rabby`, `okxwallet`, `trustwallet`, `tronWeb`, `keplr`, `bitkeep`, `BinanceChain`, where the property is configurable. A provider already defined as non-configurable is handled by the shadowing above.
 - Takes `Reflect.apply`, `Function.prototype.bind` and every event method it needs before floor code runs, because a floor can replace anything on a shared prototype. Its lookup tables have no prototype, so a name like `valueOf` is not on the allowlist by inheritance.
 - Swallows `eip6963:announceProvider` and `eip6963:requestProvider` events, and replaces `postMessage` with a no-op.
-- Makes `contentWindow`, `contentDocument` and `getSVGDocument()` return `null` on iframe, frame, object and embed elements, and the same for `Document.prototype.defaultView`, `UIEvent.prototype.view` and `document.open`, which returns the real window when given three arguments. Makes `Event.prototype.target`, `currentTarget` and `srcElement`, and `MessageEvent.prototype.source`, return `null` instead of the real window, and filters it out of `composedPath()`.
+- Makes `contentWindow`, `contentDocument` and `getSVGDocument()` return `null` on iframe, frame, object and embed elements, and the same for `Document.prototype.defaultView`, `UIEvent.prototype.view` and `document.open`, which returns the real window when given three arguments. Makes `Event.prototype.target`, `currentTarget`, `srcElement`, `originalTarget` and `explicitOriginalTarget`, and `MessageEvent.prototype.source`, return `null` instead of the real window, and filters it out of `composedPath()`.
 - Treats a listener added with no receiver as added to the window, through the same wrapper, because `EventTarget.prototype.addEventListener.call(undefined, ...)` would otherwise pass the real window as `this`.
-- Turns off handler properties such as `onload` on the window, the body and the frameset, which also run with the real window as `this`. Floors use `addEventListener`.
+- Turns off handler properties such as `onload` on the window, the body and the frameset, which also run with the real window as `this`. The generic setters for `onblur`, `onerror`, `onfocus`, `onload`, `onresize` and `onscroll` ignore a body or frameset, because some engines forward those to the window, and still work on every other element, so `img.onload` works. Floors use `addEventListener`.
 - Publishes `__ncw`, a restricted proxy over an allowlist of window members. Its timers and listeners call the floor's callback with `this` undefined, because the HTML spec otherwise passes the real window to timer callbacks.
 
 ### Serving: `app/f/[hash]/route.ts`
@@ -344,11 +344,15 @@ Uses `playwright-core` with Chrome from `CHROME_PATH`. It serves the floor from 
 - A normal tool still worked: a Playwright click inside the sandboxed frame updated its state.
 - Self-navigation got through and raised the parent's `load` count to 2, which is why the floor page removes the frame.
 
-**Verified again 2026-11-06 after review.** The first guard let 13 attacks reach a non-configurable provider, and one reach a configurable one. All 32 attacks now hold in both modes. A one-off sweep walked every object reachable from floor code, about 1,000 of them, and found no route to the real window. With one defence removed, the same sweep found it, so the sweep can detect a leak.
+**Verified again 2026-11-06 after review.** The first guard let 13 attacks reach a non-configurable provider, and one reach a configurable one. All 32 attacks now hold in both modes. A one-off sweep walked every object reachable from floor code, about 1,000 of them, and found no route to the real window. With one defence removed, the same sweep found it, so the sweep can detect a leak. A separate adversarial pass then tried about 13,000 method calls, every `on*` handler, and tampering with every shared prototype, and also found nothing. Its controls reproduced the leak whenever a defence was removed.
 
 ### What stays open
 
 No browser-side guard can cover every wallet extension. A deliberately hidden escape that beat every layer would still only raise a prompt the visitor must approve. The how-it-was-built page says so plainly.
+
+The guard is verified in Chrome only, because the gate runs Chrome. It carries defences for other engines, such as the generic handler setters above, but these are untested in Firefox and Safari.
+
+Self-navigation stays reachable without the `document` name, for example through `document.documentElement.parentNode`. The core rules cannot see every such path and CSP cannot stop it, which is why the floor page counts frame loads and removes the frame on a second load. It does not expose the window or the wallet.
 
 ### Veto
 
