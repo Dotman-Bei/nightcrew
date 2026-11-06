@@ -19,4 +19,4 @@ One line per dispatch, for the routing audit. Routing is in the tollgate report.
 | launch:1 | fast | claude-haiku-5-5 | low | executor-low | worktree | done, a8e037c |
 | pipeline:5 | top | claude-opus-5-5 | high | executor-high | worktree | done, 88a013f |
 | pipeline:6 | standard | claude-sonnet-5-5 | medium | executor-high | worktree | done, 60412aa |
-| pipeline:7 | top | claude-opus-5-5 | high | executor-high | worktree | in flight |
+| pipeline:7 | top | claude-opus-5-5 | high | executor-high | worktree | done, 7f6e9c9 |
