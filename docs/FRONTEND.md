@@ -157,7 +157,7 @@ All copy below is final. Words in `{braces}` come from the database, and the cod
 
 **Sections.**
 
-- `#tally`, H2 "Vote tally and triage". Line: "Votes weighed at Base block {38201144}." plus one of: "Stake is the current figure at tally, because the staking API keeps no history." / "The staking API did not answer, so stake counted as zero." / "Stake was not counted in this shift." Left: top 5 rows. Right: "Triage decisions", each "Accepted" or "Rejected: {category}" with its reason.
+- `#tally`, H2 "Vote tally and triage". Line: "Votes weighed at Base block {38201144}." plus one of: "Stake is the current figure at tally, because the staking API keeps no history." / "The staking API did not answer, so stake counted as zero." / "Stake was not counted in this shift." Left: top 5 rows. Right: "Triage decisions", each "Accepted" or "Rejected: {category, in the words from section 4.6}" with its reason.
 - `#transcript`, H2 "Agent transcript". Line: "Every message and tool call the build agent made, in order." A dark scrolling pane, focusable. Long entries end "[shortened here; the full text is in transcript.json]".
 - `#diff`, H2 "Diff against the blank floor". Line: "What the crew changed from the empty template." A dark scrolling pane with added and removed lines coloured.
 - `#proof`, H2 "Tests and hashes". Line: "Download any part and hash it with keccak256. Each must match, and the receipt hash is what was attested." Left: each test, "Passed" or "Failed". Right: "Receipt hash" {0xabcd…1234}, then "Download {bundle.json}" for each part.

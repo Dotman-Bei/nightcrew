@@ -24,7 +24,8 @@
           "tsconfig.json",
           "vitest.config.ts",
           "next.config.ts",
-          ".env.example"
+          ".env.example",
+          ".gitattributes"
         ],
         "modify": [
           ".gitignore"
@@ -905,7 +906,7 @@
         ]
       },
       "provides": [
-        "lib/eas.ts: RECEIPT_SCHEMA; receiptSchemaUid(); encodeAttestationData(fields); viemAttester(privateKey, schemaUid, rpcUrl?): Attester; type Attester"
+        "lib/eas.ts: RECEIPT_SCHEMA; receiptSchemaUid(); encodeAttestationData(fields); viemAttester(privateKey, schemaUid, rpcUrl?): Attester; attesterFromEnv(env, rpcUrl?): Attester | null; normaliseKey(raw): Hex; type Attester"
       ],
       "requires": [
         "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()"
@@ -948,7 +949,7 @@
       ],
       "requires": [
         "lib/receipt.ts: buildReceipt(fields, parts): BuiltReceipt; type ReceiptBundle, ReceiptOutcome, ReceiptFailure",
-        "lib/eas.ts: RECEIPT_SCHEMA; receiptSchemaUid(); encodeAttestationData(fields); viemAttester(privateKey, schemaUid, rpcUrl?): Attester; type Attester",
+        "lib/eas.ts: RECEIPT_SCHEMA; receiptSchemaUid(); encodeAttestationData(fields); viemAttester(privateKey, schemaUid, rpcUrl?): Attester; attesterFromEnv(env, rpcUrl?): Attester | null; normaliseKey(raw): Hex; type Attester",
         "crew/lib/contracts.ts: ShiftInput, CrewResult, Verdict, Transcript, TranscriptEntry, TriageDecision, TriageCategory, ReviewDecision, Failure (zod schemas and types)",
         "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
         "db/migrations/001_init.sql: shifts, proposals, votes, floors, receipts, receipt_parts, vetoes, waitlist, rate_events",
@@ -1241,7 +1242,7 @@
         ]
       },
       "provides": [
-        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash, categoryWords",
         "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView"
       ],
       "requires": [
@@ -1347,7 +1348,7 @@
       "requires": [
         "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
         "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
-        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash, categoryWords",
         "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
         "app/api/waitlist/route.ts: POST; app/api/receipts/[slug]/[part]/route.ts: GET; app/api/floors/[slug]/screenshot/route.ts: GET"
       ],
@@ -1385,7 +1386,7 @@
       "requires": [
         "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
         "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
-        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash, categoryWords",
         "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
         "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()"
       ],
@@ -1424,7 +1425,7 @@
       "requires": [
         "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
         "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
-        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash, categoryWords",
         "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
         "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()",
         "app/f/[hash]/route.ts: GET serves a floor under floorHeaders; proxy.ts: routeByHost(pathname, host, floorsOrigin)"
@@ -1448,6 +1449,7 @@
         "votes:3"
       ],
       "effort": "high",
+      "model_tier": "top",
       "files": {
         "create": [
           "components/wallet-root.tsx",
@@ -1466,7 +1468,7 @@
       "requires": [
         "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
         "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
-        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash, categoryWords",
         "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
         "lib/messages.ts: proposalMessage(input); voteMessage(input); vetoMessage(input); isFresh(signedAt, now)",
         "app/api/votes/route.ts: POST, served at /api/votes",
@@ -1504,7 +1506,7 @@
       "requires": [
         "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
         "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
-        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash, categoryWords",
         "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
         "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()",
         "app/api/waitlist/route.ts: POST; app/api/receipts/[slug]/[part]/route.ts: GET; app/api/floors/[slug]/screenshot/route.ts: GET"
@@ -1540,7 +1542,7 @@
       "requires": [
         "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
         "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
-        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash, categoryWords",
         "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>"
       ],
       "gate": {
@@ -1562,6 +1564,7 @@
         "votes:4"
       ],
       "effort": "low",
+      "model_tier": "top",
       "files": {
         "create": [
           "app/veto/page.tsx"
@@ -1714,8 +1717,8 @@
         "crew/lib/managed-agents-runtime.ts: class ManagedAgentsRuntime implements CrewRuntime"
       ],
       "gate": {
-        "run": "npx tsx crew/provision.ts",
-        "expect": "CREW_ENVIRONMENT_ID="
+        "run": "gh variable list",
+        "expect": "CREW_ENVIRONMENT_ID"
       },
       "commit": "chore: provision the crew's agent and environment",
       "human_gate": true,
@@ -1745,8 +1748,8 @@
         "vercel.json: migrates, then builds"
       ],
       "gate": {
-        "run": "npx tsx db/migrate.ts",
-        "expect": "db:migrate done"
+        "run": "gh secret list",
+        "expect": "DATABASE_URL"
       },
       "commit": "chore: create the hosting account and database",
       "human_gate": true,
@@ -1773,11 +1776,11 @@
         "Human result: secret ATTESTER_PRIVATE_KEY and repo variable EAS_SCHEMA_UID"
       ],
       "requires": [
-        "lib/eas.ts: RECEIPT_SCHEMA; receiptSchemaUid(); encodeAttestationData(fields); viemAttester(privateKey, schemaUid, rpcUrl?): Attester; type Attester"
+        "lib/eas.ts: RECEIPT_SCHEMA; receiptSchemaUid(); encodeAttestationData(fields); viemAttester(privateKey, schemaUid, rpcUrl?): Attester; attesterFromEnv(env, rpcUrl?): Attester | null; normaliseKey(raw): Hex; type Attester"
       ],
       "gate": {
-        "run": "npx tsx crew/register-schema.ts",
-        "expect": "EAS_SCHEMA_UID="
+        "run": "gh variable get EAS_SCHEMA_UID",
+        "expect": "0xb4b27b7c5a033c8fd74cd4dc5fd6e65f5c621085c0e293603bb4bb37d0a1d101"
       },
       "commit": "chore: register the EAS schema",
       "human_gate": true,
@@ -1878,7 +1881,7 @@
       ],
       "gate": {
         "run": "npx tsx crew/seed-proposals.ts",
-        "expect": "seeded proposal"
+        "expect": "seeded proposals open"
       },
       "commit": "chore: seed the first proposals",
       "human_gate": true,
@@ -2005,7 +2008,7 @@
         "Human result: SHIFTS_ARMED is true"
       ],
       "gate": {
-        "run": "node -e \"fetch(process.env.SITE_URL).then(async (r) => { const t = await r.text(); console.log(t.includes('shipped') ? 'FLOOR LIVE' : 'NO FLOOR YET'); })\"",
+        "run": "node -e \"fetch(process.env.SITE_URL).then(async (r) => { const t = await r.text(); console.log(t.includes('Open the floor') ? 'FLOOR LIVE' : 'NO FLOOR YET'); })\"",
         "expect": "FLOOR LIVE"
       },
       "commit": "chore: confirm a real wallet sees no prompt",
@@ -2081,13 +2084,17 @@
       "plan": "docs/superpowers/plans/2026-11-06-launch.md",
       "depends_on": [
         "launch:13",
+        "launch:14",
         "launch:2"
       ],
       "effort": "low",
       "model_tier": "top",
       "files": {
         "create": [],
-        "modify": [],
+        "modify": [
+          "docs/gates/submission-draft.md",
+          "README.md"
+        ],
         "test": []
       },
       "provides": [],

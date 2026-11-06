@@ -16,6 +16,7 @@ Task references use `<plan>:<task>`, across all six plans, in build order: `foun
 - Create: `vitest.config.ts`
 - Create: `next.config.ts`
 - Create: `.env.example`
+- Create: `.gitattributes`
 - Modify: `.gitignore`
 - Test:   `tests/smoke.test.ts`
 
@@ -24,7 +25,7 @@ Task references use `<plan>:<task>`, across all six plans, in build order: `foun
 **Provides:** `package.json: pinned stack, tsconfig.json with the @/ alias, vitest.config.ts`
 **Requires:** (nothing upstream)
 
-Keep the dependency versions exactly as written. `package-lock.json` is an allowed side effect, and the build relies on it: GitHub Actions runs `npm ci`.
+Keep the dependency versions exactly as written. `package-lock.json` is an allowed side effect, and the build relies on it: GitHub Actions runs `npm ci`. `.gitattributes` keeps every checkout on LF: this machine's git otherwise rewrites files as CRLF on any checkout, retry or worktree.
 
 - [ ] **Step 1: Write the project files**
 
@@ -162,6 +163,13 @@ RATE_LIMIT_SALT=
 
 # Local tests
 CHROME_PATH=
+```
+
+`.gitattributes`:
+
+```text
+# Every checkout uses LF, on Windows too. Gates and hashes read these files byte for byte.
+* text=auto eol=lf
 ```
 
 Append to `.gitignore`:
@@ -479,26 +487,22 @@ Create an Anthropic API key at platform.claude.com and add $5 of prepaid credit.
 
 - [ ] **Step 2: Do this yourself**
 
-Set it in your shell only, never in a file or a chat. In PowerShell: `$env:ANTHROPIC_API_KEY = "<your key>"`.
+Set it in your shell only, never in a file or a chat. Do not type it on a command line, because PowerShell keeps that line in a history file. This prompts and hides what you paste: `$env:ANTHROPIC_API_KEY = [System.Net.NetworkCredential]::new('', (Read-Host 'ANTHROPIC_API_KEY' -AsSecureString)).Password`.
 
 - [ ] **Step 3: Do this yourself**
 
-Run the probe below. It starts one Haiku session capped at 5 cents.
+The next step runs the probe. It starts one Haiku session capped at 5 cents, so run it once. The target is Fri 6 Nov by 22:00 UTC, and the last safe moment is Sat 7 Nov 06:00 UTC.
 
-- [ ] **Step 4: Do this yourself**
-
-Apply the decision table in the spec, section 5. The target is Fri 6 Nov by 22:00 UTC, and the last safe moment is Sat 7 Nov 06:00 UTC.
-
-- [ ] **Step 5: Prove it**
+- [ ] **Step 4: Prove it**
 
 Run: `npx tsx crew/probe-runtime.ts`
 Expected: PROBE RESULT: managed-agents
 
-- [ ] **Step 6: Act on the result**
+- [ ] **Step 5: Act on the result**
 
-Results: `managed-agents` continues the build as planned. `managed-agents-no-chromium` stays on Managed Agents, and the agent's check runs static rules only. `fallback` stops `pipeline:8`: route it to the architect to regenerate the runtime as the own-loop fallback. Tell the orchestrator the result either way.
+Apply the decision table in the spec, section 5. `managed-agents` continues the build as planned. `managed-agents-no-chromium` stays on Managed Agents, and the agent's check runs static rules only. `fallback` stops `pipeline:8`: route it to the architect to regenerate the runtime as the own-loop fallback. Tell the orchestrator the result either way.
 
-- [ ] **Step 7: Commit (kernel-performed — no agent runs this)**
+- [ ] **Step 6: Commit (kernel-performed — no agent runs this)**
 
 The orchestrator re-runs the gate, scope-checks the worktree against `Files:`, and commits exactly those paths. Executors never touch git.
 Message: `chore: record the runtime probe result`

@@ -261,8 +261,8 @@ Deterministic. It parses the raw floor and rewrites it:
 
 1. Inserts the wallet guard as the first child of `<head>`.
 2. Inserts the snapshot data block.
-3. Wraps every inline script at global scope, so no closure can leak the real `window`:
-   `(function(window,self,globalThis,top,parent,frames,opener,location,history,chrome,external,ethereum,web3,solana,phantom,fetch,XMLHttpRequest,WebSocket,EventSource,postMessage,localStorage,sessionStorage,indexedDB,open,addEventListener,removeEventListener,setTimeout,setInterval,clearTimeout,clearInterval,requestAnimationFrame,cancelAnimationFrame,matchMedia,getComputedStyle){"use strict"; <floor code> }).call(undefined, __ncw, undefined, ...)`.
+3. Wraps every inline script at global scope, so no closure can leak the real `window`: A script that is not a complete program on its own is refused, because `}})` would close the wrapper early.
+   `(function(window,self,globalThis,top,parent,frames,opener,location,history,chrome,external,ethereum,web3,solana,phantom,fetch,XMLHttpRequest,WebSocket,EventSource,postMessage,localStorage,sessionStorage,indexedDB,open,navigation,frameElement,caches,cookieStore,documentPictureInPicture,addEventListener,removeEventListener,setTimeout,setInterval,clearTimeout,clearInterval,requestAnimationFrame,cancelAnimationFrame,matchMedia,getComputedStyle){"use strict"; <floor code> }).call(undefined, __ncw, undefined, ...)`.
    `window` and the trailing group from `addEventListener` onward receive `__ncw` and its safe functions; the rest receive `undefined`. `eval` and `Function` cannot be parameters in strict mode, and the CSP blocks them instead.
 4. Computes a SHA-256 for the guard and every wrapped script, stored as `floors.script_hashes` for the CSP.
 
@@ -271,8 +271,11 @@ Deterministic. It parses the raw floor and rewrites it:
 The first script to run in every floor:
 
 - Defines non-configurable accessors returning `undefined` for `ethereum`, `web3`, `solana`, `phantom`, `coinbaseWalletExtension`, `rabby`, `okxwallet`, `trustwallet`, `tronWeb`, `keplr`, `bitkeep`, `BinanceChain`, where the property is configurable. A provider already defined as non-configurable is handled by the shadowing above.
+- Takes `Reflect.apply`, `Function.prototype.bind` and every event method it needs before floor code runs, because a floor can replace anything on a shared prototype. Its lookup tables have no prototype, so a name like `valueOf` is not on the allowlist by inheritance.
 - Swallows `eip6963:announceProvider` and `eip6963:requestProvider` events, and replaces `postMessage` with a no-op.
-- Makes `HTMLIFrameElement.prototype.contentWindow` and `contentDocument`, `Document.prototype.defaultView` and `UIEvent.prototype.view` return `null`. Makes `Event.prototype.target` and `currentTarget` return `null` instead of the real window, and filters it out of `composedPath()`.
+- Makes `contentWindow`, `contentDocument` and `getSVGDocument()` return `null` on iframe, frame, object and embed elements, and the same for `Document.prototype.defaultView`, `UIEvent.prototype.view` and `document.open`, which returns the real window when given three arguments. Makes `Event.prototype.target`, `currentTarget` and `srcElement`, and `MessageEvent.prototype.source`, return `null` instead of the real window, and filters it out of `composedPath()`.
+- Treats a listener added with no receiver as added to the window, through the same wrapper, because `EventTarget.prototype.addEventListener.call(undefined, ...)` would otherwise pass the real window as `this`.
+- Turns off handler properties such as `onload` on the window, the body and the frameset, which also run with the real window as `this`. Floors use `addEventListener`.
 - Publishes `__ncw`, a restricted proxy over an allowlist of window members. Its timers and listeners call the floor's callback with `this` undefined, because the HTML spec otherwise passes the real window to timer callbacks.
 
 ### Serving: `app/f/[hash]/route.ts`
@@ -329,7 +332,7 @@ Uses `playwright-core` with Chrome from `CHROME_PATH`. It serves the floor from 
 
 ### Proof
 
-`tests/fixtures/hostile-floors.ts` holds 21 floors, one per attack: wallet calls, wallet access through `this`, `defaultView`, a built-up name and discovery events, fetch exfiltration, an image beacon, an iframe realm trick, inline handlers and scripts through `innerHTML`, self-navigation, a form post, storage and cookie reads, `eval`, `Function`, string timers, timer `this`, listener `this` and `composedPath`. Each fixture names the rule set that rejects it, core or extended, and must also be contained by the browser gate with the static gate switched off. Self-navigation is contained by failing the gate, not by preventing it, which is why its rule is in the core set. The launch checklist includes one manual check with the user's real wallet extension.
+`tests/fixtures/hostile-floors.ts` holds 33 floors, one per attack: wallet calls, wallet access through `this`, `defaultView`, a built-up name and discovery events, fetch exfiltration, an image beacon, an iframe realm trick, inline handlers and scripts through `innerHTML`, self-navigation, a form post, storage and cookie reads, `eval`, `Function`, string timers, timer `this`, listener `this` and `composedPath`. Each fixture names the rule set that rejects it, core or extended, and must also be contained by the browser gate with the static gate switched off. Self-navigation is contained by failing the gate, not by preventing it, which is why its rule is in the core set. The launch checklist includes one manual check with the user's real wallet extension, plus 12 found in review: a name built from pieces reaching the wallet through `valueOf` on the restricted window, a replaced `bind`, `call` or `filter`, replaced discovery methods, body and bare handlers, `srcElement`, a listener with no receiver, `document.open`, a frame element, and a script that closes the wrapper early. A floor marked `runtime` is one no static rule can see, so only the runtime stops it.
 
 **Verified 2026-11-06 in a spike** against real Chrome with `playwright-core` 1.65.0 and a fake provider in both configurable and non-configurable forms:
 
@@ -340,6 +343,8 @@ Uses `playwright-core` with Chrome from `CHROME_PATH`. It serves the floor from 
 - `this` was `undefined` in timer, listener, rAF, microtask and idle callbacks.
 - A normal tool still worked: a Playwright click inside the sandboxed frame updated its state.
 - Self-navigation got through and raised the parent's `load` count to 2, which is why the floor page removes the frame.
+
+**Verified again 2026-11-06 after review.** The first guard let 13 attacks reach a non-configurable provider, and one reach a configurable one. All 32 attacks now hold in both modes. A one-off sweep walked every object reachable from floor code, about 1,000 of them, and found no route to the real window. With one defence removed, the same sweep found it, so the sweep can detect a leak.
 
 ### What stays open
 
@@ -443,7 +448,7 @@ type ReceiptBundle = {
 - Every hash is keccak256 of the part's canonical bytes. The receipt hash is keccak256 of the canonical bundle.
 - Raw parts are stored and served at `/api/receipts/[slug]/[part]` (`bundle.json`, `tally.json`, `triage.json`, `transcript.json`, `floor.html`, `diff.patch`, `tests.json`), so anyone can re-hash them.
 - `cost_cents` is the platform's `list_cost` for the build session plus triage and review priced from token usage with the price table in `lib/prices.ts`.
-- Before storing, the transcript is scanned for key-shaped strings (`sk-ant-`, 64-hex private keys). A match replaces that string with `[removed]` and is recorded in the receipt. The sandbox holds no secrets, so a match would be a defect worth seeing.
+- Before storing, the transcript is scanned for key-shaped strings (`sk-ant-`, 64-hex private keys). A match replaces that string with `[removed]`, and a status entry at the end of the transcript, which the receipt hashes, says how many were removed. The sandbox holds no secrets, so a match would be a defect worth seeing.
 - Transcript entries are truncated to 20 KB each for storage, and the truncation is marked. The hash covers what is stored.
 
 ### Attestation (**cut candidate 3**)
@@ -597,12 +602,13 @@ Pages 1, 2, 3, 5 and 6 are server-rendered, wallet-free, and use `export const r
 | Every proposal tried is rejected | Dark floor, reason "no proposal passed triage" |
 | Credit guard reached | Dark floor, reason "credit budget reached", no inference |
 | Session hits its cap | Failed at stage `build`, reason "spend cap reached" |
-| Session exceeds 30 minutes | Interrupted, failed at stage `build` |
+| Session exceeds 30 minutes, build and send-back together | Interrupted, failed at stage `build` |
 | Anthropic API error or no credit | Failed at the stage it happened |
-| Output files missing or malformed | Failed at stage `build` |
+| Output files missing | Failed at stage `build` |
+| `floor.json` malformed | Failed at stage `verify`, with the reason on the receipt |
 | Review sends back twice | Failed at stage `review` |
 | Gate rejects the floor | Failed at stage `verify`, findings shown on the receipt |
-| Attestation fails | Shift stands, attestation pending, retried next publish |
+| Attestation fails, or the attester key is unusable | Shift stands, attestation pending, retried next publish |
 | Publish fails | The run is red and re-runnable from its artifacts; nothing is half-written because the writes are one transaction |
 | Base RPC fails during tally | Failed at stage `close` |
 | Top 5 proposals all rejected | Dark floor, reason "no proposal passed triage". The five leave the list |
@@ -690,6 +696,7 @@ All non-UI code and all seven pages were built in a throwaway reference build on
 - The floor page's frame broke on any port but one while the layout checker passed. The URL is now relative, and the gate proves the floor renders.
 - Kit scripts raced React hydration, so they now load after it.
 - Proposals ranked by weight as text, so 52,000 sorted above 509,010. Ranking is now numeric, with a test.
+- The plan review found 13 routes from floor code to the real window, in the guard and the wrapper. Section 6 lists the fixes, and each route is now in the hostile set.
 
 This does not replace Step 2. The orchestrator still builds every task from the plans and proves every gate.
 
