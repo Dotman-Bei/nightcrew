@@ -1,6 +1,6 @@
 # Runsheet: Vibeathon 02 "Night shift"
 
-Last updated: 2026-11-05 by the guide seat (about 15:40 UTC, second guide session). No Step 0a pack exists. **Event facts below were re-verified at 15:27 UTC against the raw rules-page HTML (curl, not a summariser), the live event page (Chrome) and the V01 announcement post**: weights, deadline, prizes and holder-vote rules all match, and the live countdown (4d 06h 31m) matches Mon 9 Nov 22:00 UTC. The submit page was read only as far as its wallet gate. Step 0 should still re-read the rules page; the page wins on any difference.
+Last updated: 2026-11-06 by the guide seat (about 11:20 UTC): Step 0 verified, repo renamed to `nightcrew`, calendar-fit call made (see Calendar-fit call). Event facts were re-verified 2026-11-05 15:40 UTC (second guide session). No Step 0a pack exists. **Event facts below were re-verified at 15:27 UTC against the raw rules-page HTML (curl, not a summariser), the live event page (Chrome) and the V01 announcement post**: weights, deadline, prizes and holder-vote rules all match, and the live countdown (4d 06h 31m) matches Mon 9 Nov 22:00 UTC. The submit page was read only as far as its wallet gate. Step 0 should still re-read the rules page; the page wins on any difference.
 
 ## Event
 
@@ -22,7 +22,8 @@ Last updated: 2026-11-05 by the guide seat (about 15:40 UTC, second guide sessio
 
 ## Project repo
 
-- `Dotman-Bei/vibeathon-02-night-shift-2026`, private, **pipeline-created by the guide** on 2026-11-05 per `references/repo-bootstrap.md`. Local clone: `C:\Users\bamig\Documents\VIBE CODE\Hackathons\vibeathon-02-night-shift-2026` (next to the kit, not inside it). idea-forge renames it to the project slug at Step 4 and records the new name here.
+- **`Dotman-Bei/nightcrew`**, private (verified 2026-11-06 with `gh repo view`), description set to the brief's one-line solution. Pipeline-created by the guide on 2026-11-05 as `vibeathon-02-night-shift-2026` per `references/repo-bootstrap.md`, **renamed by idea-forge (Step 0) after the brief landed**; `origin` in the local clone now points at `https://github.com/Dotman-Bei/nightcrew.git` and `main` = `origin/main` at `fc91e71`.
+- Local clone, unchanged: `C:\Users\bamig\Documents\VIBE CODE\Hackathons\vibeathon-02-night-shift-2026` (next to the kit, not inside it). The folder keeps its old name on purpose: do not rename it mid-campaign, because every kickoff and the VS Code window carry this path. GitHub redirects the old repo URL, but kickoffs use `Dotman-Bei/nightcrew`.
 - Making it public is consent-gated and happens at submission, if at all (Vibecoding leverage is easier to judge with a visible repo; the user decides).
 
 ## Kit
@@ -43,16 +44,22 @@ Last updated: 2026-11-05 by the guide seat (about 15:40 UTC, second guide sessio
 
 ## Calendar
 
-- About **102 hours** left at 2026-11-05 15:30 UTC. User availability and sleep hours not given; the plan assumes the user's attention, not the clock, is the scarce resource.
+- About **83 hours** left at 2026-11-06 11:15 UTC (close Mon 2026-11-09 22:00 UTC). User availability and sleep hours not given; the plan assumes the user's attention, not the clock, is the scarce resource. Local time is UTC+1 (commit timestamps).
+- **Revised 2026-11-06** (the first table, written 2026-11-05 for a generic build, is replaced: Night Crew needs a live URL and a running pipeline early, because its evidence accrues one shift per night).
 
 | Target (UTC) | Milestone |
 |---|---|
-| Thu Nov 5, by 20:00 | Step 0 done and verified; calendar-fit call on the winning idea |
-| Fri Nov 6, by 12:00 | Step 1 approved (design dialogue needs the user); concierge preflight (hosting account, any keys) starts in parallel |
+| ~~Thu Nov 5~~ | Step 0 done and verified (done 2026-11-05 16:21 UTC; verified 2026-11-06) |
+| Fri Nov 6, 11:20 to ~18:00 | **Step 1** architect dialogue and review (budget about 3 hours of the user's attention); spec, plans and manifest pushed |
+| Fri Nov 6, by 20:00 | User's day-1 dependencies done: funded `ANTHROPIC_API_KEY`, burner attester wallet with a little ETH on Base, hosting account (the architect names the host); executor agents copied into `.claude/agents/`; Step 2 starts (pipeline first) |
+| ~~Fri Nov 6, 22:00~~ | The brief's "pipeline live by Fri 22:00" for a first nightly shift is **not reachable** (about 10 hours, before Step 1 is even approved). Dropped |
+| Sat Nov 7, 12:00 | **Checkpoint:** one end-to-end dry-run shift done (proposal, agent, tests, floor visible). If not, guide and user decide a cut, via the architect, never by hand |
+| Sat Nov 7, 18:00 | **Walking skeleton live on a public URL** and the nightly job armed (the first deploy moves up from Sun 20:00) |
+| Sat Nov 7, 22:00 | **Scheduled shift 1** |
 | Sun Nov 8, 12:00 | Build green; frontend pages done; **feature freeze** |
-| Sun Nov 8, 20:00 | Deployed to the live URL and smoke-tested from a logged-out browser |
-| Mon Nov 9, 12:00 | Submission filed by the user (10 hours of buffer; editable afterward until 22:00) |
-| Mon Nov 9, 22:00 | Hard close |
+| Sun Nov 8, 22:00 | **Scheduled shift 2** |
+| Mon Nov 9, 12:00 | Submission filed by the user, with at least 3 labelled shifts on record (10 hours of buffer; editable afterward until 22:00) |
+| Mon Nov 9, 22:00 | Hard close. The Monday 22:00 shift starts at the close, so it cannot be evidence |
 
 ## Strategy decisions
 
@@ -68,6 +75,21 @@ Last updated: 2026-11-05 by the guide seat (about 15:40 UTC, second guide sessio
 - **Risk appetite: `safe-feasible` (recommended).** Execution is the heaviest criterion and a live URL is mandatory; 102 hours is short; the unfamiliar parts (submit sign-in, holder vote) cannot be tested early. Switch to `novel-wow` only if the user knows a field this crowded rewards differentiation more than a clean demo; idea-forge still runs the judge's-eye head-to-head on originality either way.
 - **Sponsor depth:** none to extract. Vibestarter is the platform, not an SDK. If the chosen idea touches Base or $VIBES, idea-forge's feasibility notes carry live-verified addresses and signatures.
 
+## Calendar-fit call (2026-11-06)
+
+**Verdict: fits, conditionally. No idea-forge re-run, and the brief is not hand-trimmed.** About 83 hours remain. The scope is large (signed weighted votes, an agent pipeline with a security boundary, sandboxed floors, receipts with EAS attestations, a tower, a frontend, a live deploy), but every piece is bounded and the brief already names the cut candidate (Overtime). The risk is not typing speed. It is three things the agents cannot do alone:
+1. the user's day-1 dependencies (a funded API key above all);
+2. the first end-to-end shift actually running;
+3. the review the pipeline's security boundary needs (untrusted public text reaching an agent that commits code).
+
+**What the arithmetic breaks.** The brief's Execution-tie claim needs at least three real shifts on record at submission, and says nightly runs alone reach three only if the pipeline is live by Fri 22:00 UTC. That is not reachable. Scheduled 22:00 UTC shifts that can be evidence are **Sat Nov 7 and Sun Nov 8 (two)**; Fri is too early and Mon starts at the close. So the three-shift target now **requires at least one off-schedule shift, labelled as such**, which the brief explicitly allows. Each shift costs inference money, so the funded API key is also the evidence budget. Seeded proposals stay labelled as seeded.
+
+**Conditions.** (1) Step 1 approved by about Fri 18:00 UTC. (2) Day-1 dependencies done by Fri 20:00 UTC. (3) Pipeline first: the longest pole gets the highest effort and the most review. (4) Walking skeleton live on a public URL by Sat 18:00 UTC. (5) The Sat 12:00 UTC checkpoint above. Cut candidates the guide would propose at that checkpoint, in this order (the architect regenerates the plan, per `references/roles.md` §Mid-build regeneration): Overtime (already a stretch); the staking half of vote weight (the staking API is current-only, so it gives no snapshot); the attestation on Base moving to a follow-up shift. The three must-haves stay.
+
+**Weakest point the brief itself names:** holder participation is unproven, so "holders command it" can read as hollow if votes are thin. Watch it from the first shift.
+
+**Step 2 review mode, to recommend at that kickoff:** `checkpoint` for the pipeline's security-boundary tasks (security-sensitive); decide with the user then, because it costs the user's attention.
+
 ## Frontend directive
 
 - User: follow `design-taste-frontend` for all frontend work; write `docs/FRONTEND.md` from the PRD without design questions; then build one page at a time from it, running the dev server after each page and fixing layout breaks and anything generic.
@@ -79,6 +101,7 @@ Last updated: 2026-11-05 by the guide seat (about 15:40 UTC, second guide sessio
 
 - Windows build 21996: no Docker Desktop. Plans must not require it.
 - Node 22.17.1, npm 10.9.2, git 2.54.0.
+- **Frontend checker probe (guide, 2026-11-06, PASS):** the design-taste skill's `assets/layout/check.mjs` uses only Node built-ins (no npm install) and finds Chrome at `C:/Program Files/Google/Chrome/Application/chrome.exe` (present). A smoke run against the skill's own `assets/starter.html` ran headless at 1440x900 and 390x844 and wrote screenshots; the findings it printed are the unfilled template's. **Exit codes: 0 clean, 1 findings, 2 tool failure**, so it works as a one-line gate. Usage: `node <skill>/assets/layout/check.mjs --url <url or file> --profile <dir> --sizes 1440x900,1024x768,820x1180,768x1024,390x844 --shots <dir>`. Not verified: whether `--url` accepts a running `http://127.0.0.1:<port>` dev server (the usage line says "url or file"), and whether a Next.js app needs `--root` on a static export. The architect confirms both before writing a frontend task's gate. The skill says to use only its own scripts for checking, never a windowed browser or a browser tool.
 
 ## Step status
 
@@ -86,22 +109,26 @@ Last updated: 2026-11-05 by the guide seat (about 15:40 UTC, second guide sessio
 |---|---|---|---|---|
 | Guide | open | this runsheet | n/a | `claude-sonnet-5-5`, stated; effort `high` per the prompt (user-attested) |
 | 0a | skipped | none | n/a | n/a |
-| 0 idea-forge | pending | `docs/idea-forge/<date>-<slug>-brief.md` | n/a | to run at `opus` + `max` |
-| 1 architect | pending | n/a | n/a | to run at `opus` + `xhigh` |
+| 0 idea-forge | **done** | `docs/idea-forge/2026-11-05-nightcrew-brief.md`, committed and pushed (`fc91e71`) | **Verified 2026-11-06:** all nine required fields present with no placeholders (Problem, Solution, Must-have x3 plus one stretch, Target tracks "none", Judging criteria, Why it wins with white space and head-to-head, Money shot, Out of scope, Feasibility notes); the architect kickoff block is present and its REPO line is `Dotman-Bei/nightcrew`; the commit touched only the brief file; repo renamed and described. Spot-checked live by the guide: `$VIBES` `symbol()` = VIBES and `decimals()` = 18 at `0xefFC…1Acb`; EAS predeploy `version()` = 1.4.1-beta.3; `/api/staking/stats`, `/api/openapi.json`, `/api/contracts.json` and fundable.vibestarter.xyz all answer HTTP 200. Not spot-checked: the failed-raise counts, the 0-challenges ledger figure, the Botto and MoltDAO searches | `opus` + `max` per the kickoff; **the model id and effort the session reported were not passed back to the guide** |
+| 1 architect | pending, **next** | n/a | n/a | to run at `opus` + `xhigh` |
 | 2 orchestrator | pending | n/a | n/a | to run at `opus` + `high` |
 | 2.5 demo-studio | skipped by default | n/a | n/a | n/a |
 | 3 gate-concierge | pending | n/a | n/a | preflight `sonnet` + `high`; closing `opus` + `high` |
 
 ## Next action
 
-- User pastes the **Step 0 (idea-forge) kickoff** in a new chat tab in a VS Code window opened on `C:\Users\bamig\Documents\VIBE CODE\Hackathons\vibeathon-02-night-shift-2026`, at `opus` + `max`.
-- Guide then verifies the brief (committed and pushed, all fields, feasibility notes, repo rename) and makes the calendar-fit call.
+- User pastes the **Step 1 (architect) kickoff** in a new chat tab in a VS Code window opened on `C:\Users\bamig\Documents\VIBE CODE\Hackathons\vibeathon-02-night-shift-2026`, at `opus` + `xhigh`. The kickoff carries the frontend directive, the calendar-fit conditions and the frontend-checker facts.
+- In parallel, user starts the day-1 dependencies (funded `ANTHROPIC_API_KEY` first). The user does these, never the guide.
+- Guide then verifies the baton: spec, plans and `manifest.json` pushed, Stage-4 validation clean, every deploy/key/fund task `human_gate: true`, `docs/gates/submission-draft.md` present, `docs/FRONTEND.md` present with the sections the user listed, stack rows appended to the tollgate report.
 
 ## Open blockers
 
 - ~~Top risk: did the user apply?~~ **Cleared by user attestation** (applied). Residual, non-blocking: when the user connects the application wallet on the submit page, confirm the page recognises the entry; if it does not, tell the guide.
 - **Submit form (user, non-blocking until Step 1):** the host promised it "within the hour" (see Event). Re-check https://app.vibestarter.xyz/vibeathon/submit with the application wallet connected and give the guide the field list (paste or screenshot) before the Step 1 kickoff is pasted (target Fri 6 Nov 12:00 UTC). Until then the architect drafts `docs/gates/submission-draft.md` from the rules page (pitch, live URL, Fundable link) and marks the rest `TBD-form-fields`; the closing pass reconciles it with the real form. Submissions stay editable until the window closes, so file early with the live URL and edit after.
+- **Day-1 dependencies (user, by Fri 20:00 UTC):** (a) an Anthropic **API key with prepaid credit** (`ANTHROPIC_API_KEY`; a Claude Pro seat is not an API key); (b) a burner attester wallet with a little ETH on Base for attestation gas (`ATTESTER_PRIVATE_KEY`, env var only, never committed, never pasted into chat); (c) a hosting account once the architect names the host. Payment and key creation are the user's own actions.
+- **Two questions for the host in Discord (user, optional but cheap):** the submit form's field list once it is live, and whether a live product shipping new floors after the build window closes (during judging) is acceptable. The rules are silent on it and the brief flags it.
 - User to confirm or correct the assumed goal and skills (above); the prompt's GOAL, SKILLS and CALENDAR fields were still template text in this session too.
+- Step 0's reported model id and effort were not passed back; record them here if the user pastes the first line of that chat.
 - **Step 3 needs the user's wallet** (tollgate row 8 now applies to Step 3, see the tollgate report): the submit page is wallet-gated, so the user connects the application wallet and signs in themselves; the concierge is never given the key.
 - Tollgate row 5 (Chrome extension) passes in the guide session; Step 3 still re-probes it in its own session, so keep Chrome open and the extension signed in.
 - Special judges unnamed.
