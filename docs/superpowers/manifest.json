@@ -1,0 +1,2137 @@
+{
+  "project": "nightcrew",
+  "spec": "docs/superpowers/specs/2026-11-06-nightcrew-design.md",
+  "subsystems": [
+    "foundation",
+    "floor",
+    "pipeline",
+    "votes",
+    "frontend",
+    "launch"
+  ],
+  "tasks": [
+    {
+      "id": "foundation:1",
+      "subsystem": "foundation",
+      "title": "Scaffold the project",
+      "plan": "docs/superpowers/plans/2026-11-06-foundation.md",
+      "depends_on": [],
+      "effort": "low",
+      "model_tier": "fast",
+      "files": {
+        "create": [
+          "package.json",
+          "tsconfig.json",
+          "vitest.config.ts",
+          "next.config.ts",
+          ".env.example"
+        ],
+        "modify": [
+          ".gitignore"
+        ],
+        "test": [
+          "tests/smoke.test.ts"
+        ]
+      },
+      "provides": [
+        "package.json: pinned stack, tsconfig.json with the @/ alias, vitest.config.ts"
+      ],
+      "requires": [],
+      "gate": {
+        "run": "npx vitest run tests/smoke.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "chore: scaffold the Next.js project with the pinned stack",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "foundation:2",
+      "subsystem": "foundation",
+      "title": "Write the runtime probe",
+      "plan": "docs/superpowers/plans/2026-11-06-foundation.md",
+      "depends_on": [
+        "foundation:1"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "crew/lib/probe.ts",
+          "crew/lib/provisioning.ts",
+          "crew/probe-runtime.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/probe.test.ts"
+        ]
+      },
+      "provides": [
+        "crew/lib/probe.ts: decideProbe(report: ProbeReport | null, failure?: string | null): ProbeVerdict",
+        "crew/lib/provisioning.ts: createCrewResources(client: Anthropic, name: string, model: string): Promise<CrewResources>"
+      ],
+      "requires": [
+        "package.json: pinned stack, tsconfig.json with the @/ alias, vitest.config.ts"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/probe.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the Managed Agents runtime probe and sealed sandbox settings",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "foundation:3",
+      "subsystem": "foundation",
+      "title": "Fund the key and run the probe",
+      "plan": "docs/superpowers/plans/2026-11-06-foundation.md",
+      "depends_on": [
+        "foundation:2"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "Human result: PROBE RESULT line from crew/probe-runtime.ts, which decides the crew runtime"
+      ],
+      "requires": [
+        "crew/lib/probe.ts: decideProbe(report: ProbeReport | null, failure?: string | null): ProbeVerdict"
+      ],
+      "gate": {
+        "run": "npx tsx crew/probe-runtime.ts",
+        "expect": "PROBE RESULT: managed-agents"
+      },
+      "commit": "chore: record the runtime probe result",
+      "human_gate": true,
+      "gate_profile": "secret",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "foundation:4",
+      "subsystem": "foundation",
+      "title": "Canonical JSON, hashing and config",
+      "plan": "docs/superpowers/plans/2026-11-06-foundation.md",
+      "depends_on": [
+        "foundation:1"
+      ],
+      "effort": "low",
+      "files": {
+        "create": [
+          "lib/canonical.ts",
+          "lib/hash.ts",
+          "lib/config.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/hashing.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/canonical.ts: canonicalJson(value: unknown): string",
+        "lib/hash.ts: keccakText(text: string): Hex; cspScriptHash(script: string): string; sha256Hex(text: string): string",
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()"
+      ],
+      "requires": [
+        "package.json: pinned stack, tsconfig.json with the @/ alias, vitest.config.ts"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/hashing.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add canonical JSON, hashing and config",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "foundation:5",
+      "subsystem": "foundation",
+      "title": "Database schema and access",
+      "plan": "docs/superpowers/plans/2026-11-06-foundation.md",
+      "depends_on": [
+        "foundation:1"
+      ],
+      "effort": "medium",
+      "files": {
+        "create": [
+          "db/migrations/001_init.sql",
+          "lib/db.ts",
+          "db/migrate.ts",
+          "lib/types.ts",
+          "db/dev-seed.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/db.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "db/migrations/001_init.sql: shifts, proposals, votes, floors, receipts, receipt_parts, vetoes, waitlist, rate_events",
+        "lib/types.ts: type Shift, ShiftLabel, ShiftStatus, FailureStage, Proposal, Vote"
+      ],
+      "requires": [
+        "package.json: pinned stack, tsconfig.json with the @/ alias, vitest.config.ts"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/db.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the database schema and query layer",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "foundation:6",
+      "subsystem": "foundation",
+      "title": "Shift claiming and proposals",
+      "plan": "docs/superpowers/plans/2026-11-06-foundation.md",
+      "depends_on": [
+        "foundation:5"
+      ],
+      "effort": "high",
+      "files": {
+        "create": [
+          "lib/shifts.ts",
+          "lib/proposals.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/shifts.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/shifts.ts: nextCloseAfter(now): Date; getOpenShift(db); ensureOpenShift(db, now): Promise<Shift>; claimScheduled(db, now); claimOffSchedule(db, now, reason); createRehearsal(db, now, reason, proposalText, author); spentCents(db)",
+        "lib/proposals.ts: normaliseProposal(text): string; insertProposal(db, proposal: InsertProposal): Promise<number>"
+      ],
+      "requires": [
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "lib/types.ts: type Shift, ShiftLabel, ShiftStatus, FailureStage, Proposal, Vote"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/shifts.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add shift claiming, the open shift and proposal inserts",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "floor:1",
+      "subsystem": "floor",
+      "title": "Wallet guard, assembly and floor headers",
+      "plan": "docs/superpowers/plans/2026-11-06-floor.md",
+      "depends_on": [
+        "foundation:4"
+      ],
+      "effort": "xhigh",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "lib/floor-gate/guard.ts",
+          "lib/floor-gate/assemble.ts",
+          "lib/floor-gate/headers.ts",
+          "tests/fixtures/good-floor/index.html",
+          "tests/fixtures/good-floor/floor.json"
+        ],
+        "modify": [],
+        "test": [
+          "tests/assemble.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/floor-gate/guard.ts: WALLET_GUARD: string",
+        "lib/floor-gate/assemble.ts: assembleFloor(rawHtml: string, snapshotJson: string | null): AssembledFloor; wrapFloorScript(code): string",
+        "lib/floor-gate/headers.ts: FLOOR_FRAME_SANDBOX; floorCsp(scriptHashes, frameAncestor): string; floorHeaders(scriptHashes, frameAncestor): Record<string, string>",
+        "tests/fixtures/good-floor/index.html and floor.json: a floor that passes every gate"
+      ],
+      "requires": [
+        "lib/hash.ts: keccakText(text: string): Hex; cspScriptHash(script: string): string; sha256Hex(text: string): string"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/assemble.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the wallet guard, floor assembly and floor headers",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "floor:2",
+      "subsystem": "floor",
+      "title": "Static gate, core rules",
+      "plan": "docs/superpowers/plans/2026-11-06-floor.md",
+      "depends_on": [
+        "floor:1"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "lib/floor-gate/static-core.ts",
+          "lib/floor-gate/static.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/static-core.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/floor-gate/static-core.ts: type Finding; type JsNode; parseFloor(html); parseScript(code, findings); memberName(node); checkCoreScript(ast)",
+        "lib/floor-gate/static.ts: runStaticGate(html: string): Finding[]; runCoreGate(html: string): Finding[]"
+      ],
+      "requires": [
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()",
+        "tests/fixtures/good-floor/index.html and floor.json: a floor that passes every gate"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/static-core.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the static gate's core rules",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "floor:3",
+      "subsystem": "floor",
+      "title": "Browser gate with a fake wallet",
+      "plan": "docs/superpowers/plans/2026-11-06-floor.md",
+      "depends_on": [
+        "floor:1"
+      ],
+      "effort": "xhigh",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "lib/floor-gate/floor-spec.ts",
+          "lib/floor-gate/browser.ts",
+          "tests/helpers/chrome.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/browser-gate.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/floor-gate/floor-spec.ts: FloorSpec, FloorStep, FloorTest (zod schemas and types)",
+        "lib/floor-gate/browser.ts: runBrowserGate(options: BrowserGateOptions): Promise<BrowserGateResult>; gatePassed(result): boolean; fakeProviderScript(mode); type ProviderMode",
+        "tests/helpers/chrome.ts: chromePath(): string; launchChrome(): Promise<Browser>"
+      ],
+      "requires": [
+        "lib/floor-gate/assemble.ts: assembleFloor(rawHtml: string, snapshotJson: string | null): AssembledFloor; wrapFloorScript(code): string",
+        "lib/floor-gate/headers.ts: FLOOR_FRAME_SANDBOX; floorCsp(scriptHashes, frameAncestor): string; floorHeaders(scriptHashes, frameAncestor): Record<string, string>",
+        "tests/fixtures/good-floor/index.html and floor.json: a floor that passes every gate"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/browser-gate.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the browser gate with a fake injected wallet",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "floor:4",
+      "subsystem": "floor",
+      "title": "Hostile floor corpus",
+      "plan": "docs/superpowers/plans/2026-11-06-floor.md",
+      "depends_on": [
+        "floor:2",
+        "floor:3"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "tests/fixtures/hostile-floors.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/hostile-floors.test.ts"
+        ]
+      },
+      "provides": [
+        "tests/fixtures/hostile-floors.ts: HOSTILE_FLOORS: HostileFloor[]"
+      ],
+      "requires": [
+        "lib/floor-gate/static.ts: runStaticGate(html: string): Finding[]; runCoreGate(html: string): Finding[]",
+        "lib/floor-gate/browser.ts: runBrowserGate(options: BrowserGateOptions): Promise<BrowserGateResult>; gatePassed(result): boolean; fakeProviderScript(mode); type ProviderMode",
+        "tests/helpers/chrome.ts: chromePath(): string; launchChrome(): Promise<Browser>",
+        "lib/floor-gate/assemble.ts: assembleFloor(rawHtml: string, snapshotJson: string | null): AssembledFloor; wrapFloorScript(code): string"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/hostile-floors.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "test: prove the runtime contains every hostile floor",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "floor:5",
+      "subsystem": "floor",
+      "title": "Static gate, extended rules (cut candidate 4)",
+      "plan": "docs/superpowers/plans/2026-11-06-floor.md",
+      "depends_on": [
+        "floor:4",
+        "floor:6"
+      ],
+      "effort": "medium",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "lib/floor-gate/static-extended.ts"
+        ],
+        "modify": [
+          "lib/floor-gate/static.ts"
+        ],
+        "test": [
+          "tests/static-extended.test.ts"
+        ]
+      },
+      "provides": [],
+      "requires": [
+        "lib/floor-gate/static-core.ts: type Finding; type JsNode; parseFloor(html); parseScript(code, findings); memberName(node); checkCoreScript(ast)",
+        "lib/floor-gate/static.ts: runStaticGate(html: string): Finding[]; runCoreGate(html: string): Finding[]",
+        "tests/fixtures/hostile-floors.ts: HOSTILE_FLOORS: HostileFloor[]"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/static-extended.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the static gate's extended rules",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "floor:6",
+      "subsystem": "floor",
+      "title": "Floor kit for the build agent",
+      "plan": "docs/superpowers/plans/2026-11-06-floor.md",
+      "depends_on": [
+        "floor:2",
+        "floor:3"
+      ],
+      "effort": "medium",
+      "files": {
+        "create": [
+          "floor-kit/template.html",
+          "floor-kit/RULES.md",
+          "floor-kit/check-entry.ts",
+          "scripts/build-floor-kit.mjs"
+        ],
+        "modify": [],
+        "test": [
+          "tests/floor-kit.test.ts"
+        ]
+      },
+      "provides": [
+        "floor-kit/template.html, floor-kit/RULES.md, floor-kit/check-entry.ts, scripts/build-floor-kit.mjs: builds floor-kit/dist/check.mjs"
+      ],
+      "requires": [
+        "lib/floor-gate/static.ts: runStaticGate(html: string): Finding[]; runCoreGate(html: string): Finding[]",
+        "lib/floor-gate/browser.ts: runBrowserGate(options: BrowserGateOptions): Promise<BrowserGateResult>; gatePassed(result): boolean; fakeProviderScript(mode); type ProviderMode",
+        "lib/floor-gate/floor-spec.ts: FloorSpec, FloorStep, FloorTest (zod schemas and types)",
+        "lib/floor-gate/assemble.ts: assembleFloor(rawHtml: string, snapshotJson: string | null): AssembledFloor; wrapFloorScript(code): string",
+        "tests/fixtures/good-floor/index.html and floor.json: a floor that passes every gate",
+        "tests/helpers/chrome.ts: chromePath(): string; launchChrome(): Promise<Browser>"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/floor-kit.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the floor kit the build agent receives",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "floor:7",
+      "subsystem": "floor",
+      "title": "Serve floors under the sandbox",
+      "plan": "docs/superpowers/plans/2026-11-06-floor.md",
+      "depends_on": [
+        "floor:1",
+        "foundation:5"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "app/f/[hash]/route.ts",
+          "proxy.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/floor-route.test.ts"
+        ]
+      },
+      "provides": [
+        "app/f/[hash]/route.ts: GET serves a floor under floorHeaders; proxy.ts: routeByHost(pathname, host, floorsOrigin)"
+      ],
+      "requires": [
+        "lib/floor-gate/headers.ts: FLOOR_FRAME_SANDBOX; floorCsp(scriptHashes, frameAncestor): string; floorHeaders(scriptHashes, frameAncestor): Record<string, string>",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/floor-route.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: serve floors under the sandbox CSP and route by host",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:1",
+      "subsystem": "pipeline",
+      "title": "Vote weight, tally and snapshot block",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "foundation:4"
+      ],
+      "effort": "high",
+      "files": {
+        "create": [
+          "lib/tally.ts",
+          "lib/chain.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/tally.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/tally.ts: Tally, TallyEntry, VoterRecord, StakeMode, type StakeReader, noStakeReader; voteWeight(held, staked): bigint; computeTally(input: TallyInput): Tally",
+        "lib/chain.ts: type BlockInfo = { number: bigint; timestamp: bigint }; type ChainReader = { latestBlock(): Promise<BlockInfo>; blockAt(number: bigint): Promise<BlockInfo>; heldAt(addresses: string[], block: bigint): Promise<Map<string, bigint>> }, where the map is keyed by lower-case address; findSnapshotBlock(reader, target): Promise<bigint>; viemChainReader(rpcUrl?): ChainReader"
+      ],
+      "requires": [
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/tally.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add vote weight, the tally and snapshot block search",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:2",
+      "subsystem": "pipeline",
+      "title": "Read stake at tally (cut candidate 2)",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "pipeline:1"
+      ],
+      "effort": "low",
+      "files": {
+        "create": [
+          "lib/stake.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/stake.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/stake.ts: apiStakeReader(fetchImpl?): StakeReader"
+      ],
+      "requires": [
+        "lib/tally.ts: Tally, TallyEntry, VoterRecord, StakeMode, type StakeReader, noStakeReader; voteWeight(held, staked): bigint; computeTally(input: TallyInput): Tally",
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/stake.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: read stake at tally, labelled current at tally",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:3",
+      "subsystem": "pipeline",
+      "title": "Public data snapshot for floors",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "foundation:4"
+      ],
+      "effort": "low",
+      "files": {
+        "create": [
+          "crew/lib/floor-data.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/floor-data.test.ts"
+        ]
+      },
+      "provides": [
+        "crew/lib/floor-data.ts: fetchFloorData(fetchImpl?, now?): Promise<string>"
+      ],
+      "requires": [
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/floor-data.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: fetch the public data snapshot floors can read",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:4",
+      "subsystem": "pipeline",
+      "title": "The close job",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "foundation:6",
+        "pipeline:2",
+        "pipeline:3"
+      ],
+      "effort": "high",
+      "files": {
+        "create": [
+          "crew/lib/contracts.ts",
+          "crew/lib/close-shift.ts",
+          "crew/lib/work-dir.ts",
+          "crew/close.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/close-shift.test.ts"
+        ]
+      },
+      "provides": [
+        "crew/lib/contracts.ts: ShiftInput, CrewResult, Verdict, Transcript, TranscriptEntry, TriageDecision, TriageCategory, ReviewDecision, Failure (zod schemas and types)",
+        "crew/lib/close-shift.ts: closeShift(deps: CloseDeps): Promise<ShiftInput | null>; type Trigger",
+        "crew/lib/work-dir.ts: workPath(...parts); writeWork(path, content); readWork(path); setOutput(name, value)"
+      ],
+      "requires": [
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "lib/shifts.ts: nextCloseAfter(now): Date; getOpenShift(db); ensureOpenShift(db, now): Promise<Shift>; claimScheduled(db, now); claimOffSchedule(db, now, reason); createRehearsal(db, now, reason, proposalText, author); spentCents(db)",
+        "lib/types.ts: type Shift, ShiftLabel, ShiftStatus, FailureStage, Proposal, Vote",
+        "lib/tally.ts: Tally, TallyEntry, VoterRecord, StakeMode, type StakeReader, noStakeReader; voteWeight(held, staked): bigint; computeTally(input: TallyInput): Tally",
+        "lib/chain.ts: type BlockInfo = { number: bigint; timestamp: bigint }; type ChainReader = { latestBlock(): Promise<BlockInfo>; blockAt(number: bigint): Promise<BlockInfo>; heldAt(addresses: string[], block: bigint): Promise<Map<string, bigint>> }, where the map is keyed by lower-case address; findSnapshotBlock(reader, target): Promise<bigint>; viemChainReader(rpcUrl?): ChainReader",
+        "lib/stake.ts: apiStakeReader(fetchImpl?): StakeReader",
+        "crew/lib/floor-data.ts: fetchFloorData(fetchImpl?, now?): Promise<string>"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/close-shift.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the close job: claim, tally, budget guard and floor data",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:5",
+      "subsystem": "pipeline",
+      "title": "Triage agent",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "pipeline:4"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "lib/prices.ts",
+          "crew/lib/model.ts",
+          "crew/prompts/triage.md",
+          "crew/lib/triage.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/triage.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/prices.ts: usageCents(model, usage: TokenUsage): number",
+        "crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; anthropicStructuredModel(client?): StructuredModel",
+        "crew/lib/triage.ts: CREW_SUPPORT_MODEL; triageProposal(model, proposalId, text): Promise<TriageOutcome>; triageUserMessage(text)"
+      ],
+      "requires": [
+        "crew/lib/contracts.ts: ShiftInput, CrewResult, Verdict, Transcript, TranscriptEntry, TriageDecision, TriageCategory, ReviewDecision, Failure (zod schemas and types)"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/triage.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the triage agent with no tools and a fixed schema",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:6",
+      "subsystem": "pipeline",
+      "title": "Review agent and transcript",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "pipeline:5"
+      ],
+      "effort": "medium",
+      "files": {
+        "create": [
+          "crew/prompts/review.md",
+          "crew/lib/review.ts",
+          "crew/lib/transcript.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/review-transcript.test.ts"
+        ]
+      },
+      "provides": [
+        "crew/lib/review.ts: reviewFloor(model, brief, html, floorJson): Promise<ReviewOutcome>",
+        "crew/lib/transcript.ts: normaliseEvents(events: RawEvent[]): TranscriptEntry[]; scrubTranscript(entries); type RawEvent"
+      ],
+      "requires": [
+        "crew/lib/contracts.ts: ShiftInput, CrewResult, Verdict, Transcript, TranscriptEntry, TriageDecision, TriageCategory, ReviewDecision, Failure (zod schemas and types)",
+        "crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; anthropicStructuredModel(client?): StructuredModel",
+        "crew/lib/triage.ts: CREW_SUPPORT_MODEL; triageProposal(model, proposalId, text): Promise<TriageOutcome>; triageUserMessage(text)"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/review-transcript.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the review agent and the public transcript",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:7",
+      "subsystem": "pipeline",
+      "title": "The crew: triage, build, review",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "pipeline:6"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "crew/lib/runtime.ts",
+          "crew/lib/crew-shift.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/crew-shift.test.ts"
+        ]
+      },
+      "provides": [
+        "crew/lib/runtime.ts: interface CrewRuntime { build(input); sendBack(sessionId, reasons) }; BuildInput; BuildResult; KitFile; buildPrompt(input); sendBackPrompt(reasons)",
+        "crew/lib/crew-shift.ts: crewShift(deps: CrewDeps): Promise<CrewOutput>"
+      ],
+      "requires": [
+        "crew/lib/contracts.ts: ShiftInput, CrewResult, Verdict, Transcript, TranscriptEntry, TriageDecision, TriageCategory, ReviewDecision, Failure (zod schemas and types)",
+        "crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; anthropicStructuredModel(client?): StructuredModel",
+        "crew/lib/triage.ts: CREW_SUPPORT_MODEL; triageProposal(model, proposalId, text): Promise<TriageOutcome>; triageUserMessage(text)",
+        "crew/lib/review.ts: reviewFloor(model, brief, html, floorJson): Promise<ReviewOutcome>"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/crew-shift.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: run triage, build and review, with failures as results",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:8",
+      "subsystem": "pipeline",
+      "title": "Managed Agents runtime",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "pipeline:7",
+        "foundation:3",
+        "floor:6"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "crew/prompts/build.md",
+          "crew/lib/managed-agents-runtime.ts",
+          "crew/provision.ts",
+          "crew/crew.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/managed-agents-runtime.test.ts"
+        ]
+      },
+      "provides": [
+        "crew/lib/managed-agents-runtime.ts: class ManagedAgentsRuntime implements CrewRuntime"
+      ],
+      "requires": [
+        "crew/lib/runtime.ts: interface CrewRuntime { build(input); sendBack(sessionId, reasons) }; BuildInput; BuildResult; KitFile; buildPrompt(input); sendBackPrompt(reasons)",
+        "crew/lib/transcript.ts: normaliseEvents(events: RawEvent[]): TranscriptEntry[]; scrubTranscript(entries); type RawEvent",
+        "crew/lib/provisioning.ts: createCrewResources(client: Anthropic, name: string, model: string): Promise<CrewResources>",
+        "crew/lib/contracts.ts: ShiftInput, CrewResult, Verdict, Transcript, TranscriptEntry, TriageDecision, TriageCategory, ReviewDecision, Failure (zod schemas and types)",
+        "crew/lib/crew-shift.ts: crewShift(deps: CrewDeps): Promise<CrewOutput>",
+        "crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; anthropicStructuredModel(client?): StructuredModel",
+        "crew/lib/work-dir.ts: workPath(...parts); writeWork(path, content); readWork(path); setOutput(name, value)",
+        "Human result: PROBE RESULT line from crew/probe-runtime.ts, which decides the crew runtime"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/managed-agents-runtime.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: run the build agent in a sealed Managed Agents sandbox",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:9",
+      "subsystem": "pipeline",
+      "title": "The verify job",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "pipeline:4",
+        "floor:6"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "crew/lib/verify-floor.ts",
+          "crew/verify.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/verify-floor.test.ts"
+        ]
+      },
+      "provides": [
+        "crew/lib/verify-floor.ts: verifyFloor(rawHtml, floorJsonText, snapshotJson, launch): Promise<VerifyOutput>"
+      ],
+      "requires": [
+        "lib/floor-gate/static.ts: runStaticGate(html: string): Finding[]; runCoreGate(html: string): Finding[]",
+        "lib/floor-gate/browser.ts: runBrowserGate(options: BrowserGateOptions): Promise<BrowserGateResult>; gatePassed(result): boolean; fakeProviderScript(mode); type ProviderMode",
+        "lib/floor-gate/assemble.ts: assembleFloor(rawHtml: string, snapshotJson: string | null): AssembledFloor; wrapFloorScript(code): string",
+        "lib/floor-gate/floor-spec.ts: FloorSpec, FloorStep, FloorTest (zod schemas and types)",
+        "crew/lib/contracts.ts: ShiftInput, CrewResult, Verdict, Transcript, TranscriptEntry, TriageDecision, TriageCategory, ReviewDecision, Failure (zod schemas and types)",
+        "crew/lib/work-dir.ts: workPath(...parts); writeWork(path, content); readWork(path); setOutput(name, value)",
+        "tests/helpers/chrome.ts: chromePath(): string; launchChrome(): Promise<Browser>"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/verify-floor.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the verify job, the authoritative gate",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:10",
+      "subsystem": "pipeline",
+      "title": "Receipt bundle and hashes",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "foundation:4"
+      ],
+      "effort": "medium",
+      "files": {
+        "create": [
+          "lib/receipt.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/receipt.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/receipt.ts: buildReceipt(fields, parts): BuiltReceipt; type ReceiptBundle, ReceiptOutcome, ReceiptFailure"
+      ],
+      "requires": [
+        "lib/canonical.ts: canonicalJson(value: unknown): string",
+        "lib/hash.ts: keccakText(text: string): Hex; cspScriptHash(script: string): string; sha256Hex(text: string): string"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/receipt.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: build the receipt bundle with Origin Capsule field names",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:11",
+      "subsystem": "pipeline",
+      "title": "EAS attestation (cut candidate 3)",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "foundation:4"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "lib/eas.ts",
+          "crew/register-schema.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/eas.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/eas.ts: RECEIPT_SCHEMA; receiptSchemaUid(); encodeAttestationData(fields); viemAttester(privateKey, schemaUid, rpcUrl?): Attester; type Attester"
+      ],
+      "requires": [
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/eas.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the EAS schema and attester",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:12",
+      "subsystem": "pipeline",
+      "title": "The publish job, and the whole pipeline end to end",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "pipeline:7",
+        "pipeline:9",
+        "pipeline:10",
+        "pipeline:11",
+        "foundation:6"
+      ],
+      "effort": "xhigh",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "crew/lib/publish-shift.ts",
+          "crew/publish.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/pipeline.e2e.test.ts"
+        ]
+      },
+      "provides": [
+        "crew/lib/publish-shift.ts: publishShift(deps: PublishDeps): Promise<PublishResult>; type PublishWork"
+      ],
+      "requires": [
+        "lib/receipt.ts: buildReceipt(fields, parts): BuiltReceipt; type ReceiptBundle, ReceiptOutcome, ReceiptFailure",
+        "lib/eas.ts: RECEIPT_SCHEMA; receiptSchemaUid(); encodeAttestationData(fields); viemAttester(privateKey, schemaUid, rpcUrl?): Attester; type Attester",
+        "crew/lib/contracts.ts: ShiftInput, CrewResult, Verdict, Transcript, TranscriptEntry, TriageDecision, TriageCategory, ReviewDecision, Failure (zod schemas and types)",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "db/migrations/001_init.sql: shifts, proposals, votes, floors, receipts, receipt_parts, vetoes, waitlist, rate_events",
+        "lib/chain.ts: type BlockInfo = { number: bigint; timestamp: bigint }; type ChainReader = { latestBlock(): Promise<BlockInfo>; blockAt(number: bigint): Promise<BlockInfo>; heldAt(addresses: string[], block: bigint): Promise<Map<string, bigint>> }, where the map is keyed by lower-case address; findSnapshotBlock(reader, target): Promise<bigint>; viemChainReader(rpcUrl?): ChainReader",
+        "lib/shifts.ts: nextCloseAfter(now): Date; getOpenShift(db); ensureOpenShift(db, now): Promise<Shift>; claimScheduled(db, now); claimOffSchedule(db, now, reason); createRehearsal(db, now, reason, proposalText, author); spentCents(db)",
+        "lib/floor-gate/floor-spec.ts: FloorSpec, FloorStep, FloorTest (zod schemas and types)",
+        "lib/floor-gate/assemble.ts: assembleFloor(rawHtml: string, snapshotJson: string | null): AssembledFloor; wrapFloorScript(code): string",
+        "crew/lib/close-shift.ts: closeShift(deps: CloseDeps): Promise<ShiftInput | null>; type Trigger",
+        "crew/lib/crew-shift.ts: crewShift(deps: CrewDeps): Promise<CrewOutput>",
+        "crew/lib/verify-floor.ts: verifyFloor(rawHtml, floorJsonText, snapshotJson, launch): Promise<VerifyOutput>",
+        "lib/proposals.ts: normaliseProposal(text): string; insertProposal(db, proposal: InsertProposal): Promise<number>",
+        "crew/lib/runtime.ts: interface CrewRuntime { build(input); sendBack(sessionId, reasons) }; BuildInput; BuildResult; KitFile; buildPrompt(input); sendBackPrompt(reasons)",
+        "crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; anthropicStructuredModel(client?): StructuredModel",
+        "crew/lib/work-dir.ts: workPath(...parts); writeWork(path, content); readWork(path); setOutput(name, value)",
+        "tests/helpers/chrome.ts: chromePath(): string; launchChrome(): Promise<Browser>",
+        "tests/fixtures/good-floor/index.html and floor.json: a floor that passes every gate"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/pipeline.e2e.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the publish job and prove the whole shift end to end",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:13",
+      "subsystem": "pipeline",
+      "title": "The shift workflow",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "pipeline:8",
+        "pipeline:12"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          ".github/workflows/shift.yml",
+          "crew/seed-proposals.json",
+          "crew/seed-proposals.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/workflow.test.ts"
+        ]
+      },
+      "provides": [
+        ".github/workflows/shift.yml: close, crew, verify and publish jobs"
+      ],
+      "requires": [
+        "crew/lib/close-shift.ts: closeShift(deps: CloseDeps): Promise<ShiftInput | null>; type Trigger",
+        "crew/lib/crew-shift.ts: crewShift(deps: CrewDeps): Promise<CrewOutput>",
+        "crew/lib/verify-floor.ts: verifyFloor(rawHtml, floorJsonText, snapshotJson, launch): Promise<VerifyOutput>",
+        "crew/lib/publish-shift.ts: publishShift(deps: PublishDeps): Promise<PublishResult>; type PublishWork",
+        "lib/proposals.ts: normaliseProposal(text): string; insertProposal(db, proposal: InsertProposal): Promise<number>",
+        "lib/shifts.ts: nextCloseAfter(now): Date; getOpenShift(db); ensureOpenShift(db, now): Promise<Shift>; claimScheduled(db, now); claimOffSchedule(db, now, reason); createRehearsal(db, now, reason, proposalText, author); spentCents(db)",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/workflow.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the shift workflow with one secret set per job",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "votes:1",
+      "subsystem": "votes",
+      "title": "Signed messages, signature checks and rate limits",
+      "plan": "docs/superpowers/plans/2026-11-06-votes.md",
+      "depends_on": [
+        "foundation:6",
+        "pipeline:1"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "lib/messages.ts",
+          "lib/services.ts",
+          "lib/rate-limit.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/messages.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/messages.ts: proposalMessage(input); voteMessage(input); vetoMessage(input); isFresh(signedAt, now)",
+        "lib/services.ts: services.verifySignature(address, message, signature); services.estimateWeight(address)",
+        "lib/rate-limit.ts: clientKey(request, scope): string; allowEvent(db, key, perHour, now?): Promise<boolean>"
+      ],
+      "requires": [
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "lib/hash.ts: keccakText(text: string): Hex; cspScriptHash(script: string): string; sha256Hex(text: string): string",
+        "lib/chain.ts: type BlockInfo = { number: bigint; timestamp: bigint }; type ChainReader = { latestBlock(): Promise<BlockInfo>; blockAt(number: bigint): Promise<BlockInfo>; heldAt(addresses: string[], block: bigint): Promise<Map<string, bigint>> }, where the map is keyed by lower-case address; findSnapshotBlock(reader, target): Promise<bigint>; viemChainReader(rpcUrl?): ChainReader",
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/messages.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add signed messages, signature checks and rate limits",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "votes:2",
+      "subsystem": "votes",
+      "title": "Propose by signing",
+      "plan": "docs/superpowers/plans/2026-11-06-votes.md",
+      "depends_on": [
+        "votes:1"
+      ],
+      "effort": "medium",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "app/api/proposals/route.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/api-proposals.test.ts"
+        ]
+      },
+      "provides": [
+        "app/api/proposals/route.ts: POST, served at /api/proposals"
+      ],
+      "requires": [
+        "lib/messages.ts: proposalMessage(input); voteMessage(input); vetoMessage(input); isFresh(signedAt, now)",
+        "lib/services.ts: services.verifySignature(address, message, signature); services.estimateWeight(address)",
+        "lib/rate-limit.ts: clientKey(request, scope): string; allowEvent(db, key, perHour, now?): Promise<boolean>",
+        "lib/proposals.ts: normaliseProposal(text): string; insertProposal(db, proposal: InsertProposal): Promise<number>",
+        "lib/shifts.ts: nextCloseAfter(now): Date; getOpenShift(db); ensureOpenShift(db, now): Promise<Shift>; claimScheduled(db, now); claimOffSchedule(db, now, reason); createRehearsal(db, now, reason, proposalText, author); spentCents(db)",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "db/migrations/001_init.sql: shifts, proposals, votes, floors, receipts, receipt_parts, vetoes, waitlist, rate_events"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/api-proposals.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: accept signed proposals, with wallet and IP limits",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "votes:3",
+      "subsystem": "votes",
+      "title": "Vote by signing",
+      "plan": "docs/superpowers/plans/2026-11-06-votes.md",
+      "depends_on": [
+        "votes:2"
+      ],
+      "effort": "medium",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "app/api/votes/route.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/api-votes.test.ts"
+        ]
+      },
+      "provides": [
+        "app/api/votes/route.ts: POST, served at /api/votes"
+      ],
+      "requires": [
+        "lib/messages.ts: proposalMessage(input); voteMessage(input); vetoMessage(input); isFresh(signedAt, now)",
+        "lib/services.ts: services.verifySignature(address, message, signature); services.estimateWeight(address)",
+        "lib/rate-limit.ts: clientKey(request, scope): string; allowEvent(db, key, perHour, now?): Promise<boolean>",
+        "lib/shifts.ts: nextCloseAfter(now): Date; getOpenShift(db); ensureOpenShift(db, now): Promise<Shift>; claimScheduled(db, now); claimOffSchedule(db, now, reason); createRehearsal(db, now, reason, proposalText, author); spentCents(db)",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "db/migrations/001_init.sql: shifts, proposals, votes, floors, receipts, receipt_parts, vetoes, waitlist, rate_events",
+        "app/api/proposals/route.ts: POST, served at /api/proposals"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/api-votes.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: accept signed votes, changeable until the close",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "votes:4",
+      "subsystem": "votes",
+      "title": "Veto",
+      "plan": "docs/superpowers/plans/2026-11-06-votes.md",
+      "depends_on": [
+        "votes:2"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "app/api/vetoes/route.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/api-vetoes.test.ts"
+        ]
+      },
+      "provides": [
+        "app/api/vetoes/route.ts: POST, served at /api/vetoes"
+      ],
+      "requires": [
+        "lib/messages.ts: proposalMessage(input); voteMessage(input); vetoMessage(input); isFresh(signedAt, now)",
+        "lib/services.ts: services.verifySignature(address, message, signature); services.estimateWeight(address)",
+        "lib/rate-limit.ts: clientKey(request, scope): string; allowEvent(db, key, perHour, now?): Promise<boolean>",
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()",
+        "lib/shifts.ts: nextCloseAfter(now): Date; getOpenShift(db); ensureOpenShift(db, now): Promise<Shift>; claimScheduled(db, now); claimOffSchedule(db, now, reason); createRehearsal(db, now, reason, proposalText, author); spentCents(db)",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "db/migrations/001_init.sql: shifts, proposals, votes, floors, receipts, receipt_parts, vetoes, waitlist, rate_events",
+        "app/api/proposals/route.ts: POST, served at /api/proposals"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/api-vetoes.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: let only the builder's wallet veto, in public",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "votes:5",
+      "subsystem": "votes",
+      "title": "Waitlist, raw receipt parts and floor screenshots",
+      "plan": "docs/superpowers/plans/2026-11-06-votes.md",
+      "depends_on": [
+        "votes:1"
+      ],
+      "effort": "medium",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "app/api/waitlist/route.ts",
+          "app/api/receipts/[slug]/[part]/route.ts",
+          "app/api/floors/[slug]/screenshot/route.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/api-public.test.ts"
+        ]
+      },
+      "provides": [
+        "app/api/waitlist/route.ts: POST; app/api/receipts/[slug]/[part]/route.ts: GET; app/api/floors/[slug]/screenshot/route.ts: GET"
+      ],
+      "requires": [
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "db/migrations/001_init.sql: shifts, proposals, votes, floors, receipts, receipt_parts, vetoes, waitlist, rate_events",
+        "lib/rate-limit.ts: clientKey(request, scope): string; allowEvent(db, key, perHour, now?): Promise<boolean>"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/api-public.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the waitlist, raw receipt parts and floor screenshots",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "votes:6",
+      "subsystem": "votes",
+      "title": "Read models for the pages",
+      "plan": "docs/superpowers/plans/2026-11-06-votes.md",
+      "depends_on": [
+        "foundation:6",
+        "pipeline:10",
+        "pipeline:4"
+      ],
+      "effort": "medium",
+      "files": {
+        "create": [
+          "lib/format.ts",
+          "lib/read-models.ts"
+        ],
+        "modify": [],
+        "test": [
+          "tests/read-models.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView"
+      ],
+      "requires": [
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()",
+        "lib/receipt.ts: buildReceipt(fields, parts): BuiltReceipt; type ReceiptBundle, ReceiptOutcome, ReceiptFailure",
+        "lib/shifts.ts: nextCloseAfter(now): Date; getOpenShift(db); ensureOpenShift(db, now): Promise<Shift>; claimScheduled(db, now); claimOffSchedule(db, now, reason); createRehearsal(db, now, reason, proposalText, author); spentCents(db)",
+        "lib/tally.ts: Tally, TallyEntry, VoterRecord, StakeMode, type StakeReader, noStakeReader; voteWeight(held, staked): bigint; computeTally(input: TallyInput): Tally",
+        "crew/lib/contracts.ts: ShiftInput, CrewResult, Verdict, Transcript, TranscriptEntry, TriageDecision, TriageCategory, ReviewDecision, Failure (zod schemas and types)",
+        "lib/proposals.ts: normaliseProposal(text): string; insertProposal(db, proposal: InsertProposal): Promise<number>"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/read-models.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add read models and format helpers for the pages",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "frontend:1",
+      "subsystem": "frontend",
+      "title": "App shell, kit assets, dev seed and page gate",
+      "plan": "docs/superpowers/plans/2026-11-06-frontend.md",
+      "depends_on": [
+        "votes:6",
+        "pipeline:9",
+        "pipeline:12",
+        "floor:7"
+      ],
+      "effort": "medium",
+      "files": {
+        "create": [
+          "scripts/copy-taste.mjs",
+          "scripts/check-page.mjs",
+          "scripts/make-dev-shots.ts",
+          "components/kit-scripts.tsx",
+          "components/site-shell.tsx",
+          "app/layout.tsx",
+          "app/not-found.tsx",
+          "public/site.css",
+          "public/taste/",
+          "db/dev-shots/wide.b64",
+          "db/dev-shots/narrow.b64"
+        ],
+        "modify": [
+          "db/dev-seed.ts"
+        ],
+        "test": [
+          "tests/dev-seed.test.ts"
+        ]
+      },
+      "provides": [
+        "db/dev-seed.ts: seedDevData(db): Promise<void>",
+        "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css"
+      ],
+      "requires": [
+        "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "lib/floor-gate/assemble.ts: assembleFloor(rawHtml: string, snapshotJson: string | null): AssembledFloor; wrapFloorScript(code): string",
+        "lib/receipt.ts: buildReceipt(fields, parts): BuiltReceipt; type ReceiptBundle, ReceiptOutcome, ReceiptFailure",
+        "lib/shifts.ts: nextCloseAfter(now): Date; getOpenShift(db); ensureOpenShift(db, now): Promise<Shift>; claimScheduled(db, now); claimOffSchedule(db, now, reason); createRehearsal(db, now, reason, proposalText, author); spentCents(db)",
+        "lib/tally.ts: Tally, TallyEntry, VoterRecord, StakeMode, type StakeReader, noStakeReader; voteWeight(held, staked): bigint; computeTally(input: TallyInput): Tally",
+        "crew/lib/verify-floor.ts: verifyFloor(rawHtml, floorJsonText, snapshotJson, launch): Promise<VerifyOutput>",
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()",
+        "tests/fixtures/good-floor/index.html and floor.json: a floor that passes every gate",
+        "floor-kit/template.html, floor-kit/RULES.md, floor-kit/check-entry.ts, scripts/build-floor-kit.mjs: builds floor-kit/dist/check.mjs"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/dev-seed.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: add the app shell, kit assets, dev seed and page gate",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "frontend:2",
+      "subsystem": "frontend",
+      "title": "Tower page",
+      "plan": "docs/superpowers/plans/2026-11-06-frontend.md",
+      "depends_on": [
+        "frontend:1",
+        "votes:5"
+      ],
+      "effort": "high",
+      "files": {
+        "create": [
+          "components/tower.tsx",
+          "components/shift-diagram.tsx",
+          "app/page.tsx"
+        ],
+        "modify": [
+          "public/site.css"
+        ],
+        "test": []
+      },
+      "provides": [
+        "app/page.tsx: the Tower at /"
+      ],
+      "requires": [
+        "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
+        "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "app/api/waitlist/route.ts: POST; app/api/receipts/[slug]/[part]/route.ts: GET; app/api/floors/[slug]/screenshot/route.ts: GET"
+      ],
+      "gate": {
+        "run": "node scripts/check-page.mjs home",
+        "expect": "PAGE CHECK PASS"
+      },
+      "commit": "feat: build the Tower page",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "frontend:3",
+      "subsystem": "frontend",
+      "title": "Receipt page",
+      "plan": "docs/superpowers/plans/2026-11-06-frontend.md",
+      "depends_on": [
+        "frontend:2"
+      ],
+      "effort": "high",
+      "files": {
+        "create": [
+          "app/shifts/[slug]/page.tsx",
+          "app/shifts/latest/page.tsx"
+        ],
+        "modify": [
+          "public/site.css"
+        ],
+        "test": []
+      },
+      "provides": [
+        "app/shifts/[slug]/page.tsx; app/shifts/latest/page.tsx"
+      ],
+      "requires": [
+        "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
+        "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()"
+      ],
+      "gate": {
+        "run": "node scripts/check-page.mjs shifts/1",
+        "expect": "PAGE CHECK PASS"
+      },
+      "commit": "feat: build the Receipt page",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "frontend:4",
+      "subsystem": "frontend",
+      "title": "Floor page",
+      "plan": "docs/superpowers/plans/2026-11-06-frontend.md",
+      "depends_on": [
+        "frontend:3"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "components/floor-frame.tsx",
+          "app/floors/[slug]/page.tsx"
+        ],
+        "modify": [
+          "public/site.css"
+        ],
+        "test": []
+      },
+      "provides": [
+        "app/floors/[slug]/page.tsx; components/floor-frame.tsx: FloorFrame({ src, title })"
+      ],
+      "requires": [
+        "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
+        "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()",
+        "app/f/[hash]/route.ts: GET serves a floor under floorHeaders; proxy.ts: routeByHost(pathname, host, floorsOrigin)"
+      ],
+      "gate": {
+        "run": "node scripts/check-page.mjs floors/1 --expect-floor",
+        "expect": "PAGE CHECK PASS"
+      },
+      "commit": "feat: build the Floor page, with the tool in its sandbox",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "frontend:5",
+      "subsystem": "frontend",
+      "title": "Vote and propose page",
+      "plan": "docs/superpowers/plans/2026-11-06-frontend.md",
+      "depends_on": [
+        "frontend:4",
+        "votes:3"
+      ],
+      "effort": "high",
+      "files": {
+        "create": [
+          "components/wallet-root.tsx",
+          "components/wallet-actions.tsx",
+          "app/vote/page.tsx"
+        ],
+        "modify": [
+          "public/site.css"
+        ],
+        "test": []
+      },
+      "provides": [
+        "components/wallet-root.tsx: WalletRoot; components/wallet-actions.tsx: ConnectPanel, VoteButton, ProposeForm, VetoForm",
+        "app/vote/page.tsx"
+      ],
+      "requires": [
+        "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
+        "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "lib/messages.ts: proposalMessage(input); voteMessage(input); vetoMessage(input); isFresh(signedAt, now)",
+        "app/api/votes/route.ts: POST, served at /api/votes",
+        "app/api/proposals/route.ts: POST, served at /api/proposals"
+      ],
+      "gate": {
+        "run": "node scripts/check-page.mjs vote",
+        "expect": "PAGE CHECK PASS"
+      },
+      "commit": "feat: build the Vote and propose page",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "frontend:6",
+      "subsystem": "frontend",
+      "title": "How it was built page",
+      "plan": "docs/superpowers/plans/2026-11-06-frontend.md",
+      "depends_on": [
+        "frontend:5"
+      ],
+      "effort": "medium",
+      "files": {
+        "create": [
+          "components/waitlist-form.tsx",
+          "app/built/page.tsx"
+        ],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "app/built/page.tsx; components/waitlist-form.tsx"
+      ],
+      "requires": [
+        "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
+        "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()",
+        "app/api/waitlist/route.ts: POST; app/api/receipts/[slug]/[part]/route.ts: GET; app/api/floors/[slug]/screenshot/route.ts: GET"
+      ],
+      "gate": {
+        "run": "node scripts/check-page.mjs built",
+        "expect": "PAGE CHECK PASS"
+      },
+      "commit": "feat: build the How it was built page",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "frontend:7",
+      "subsystem": "frontend",
+      "title": "Rejected page",
+      "plan": "docs/superpowers/plans/2026-11-06-frontend.md",
+      "depends_on": [
+        "frontend:5"
+      ],
+      "effort": "low",
+      "files": {
+        "create": [
+          "app/rejected/page.tsx"
+        ],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "app/rejected/page.tsx"
+      ],
+      "requires": [
+        "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
+        "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
+        "lib/format.ts: shortAddress, money, dayLabel, timeLabel, wholeNumber, shortHash",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>"
+      ],
+      "gate": {
+        "run": "node scripts/check-page.mjs rejected",
+        "expect": "PAGE CHECK PASS"
+      },
+      "commit": "feat: build the Rejected page",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "frontend:8",
+      "subsystem": "frontend",
+      "title": "Veto page",
+      "plan": "docs/superpowers/plans/2026-11-06-frontend.md",
+      "depends_on": [
+        "frontend:5",
+        "votes:4"
+      ],
+      "effort": "low",
+      "files": {
+        "create": [
+          "app/veto/page.tsx"
+        ],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "app/veto/page.tsx"
+      ],
+      "requires": [
+        "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
+        "components/wallet-root.tsx: WalletRoot; components/wallet-actions.tsx: ConnectPanel, VoteButton, ProposeForm, VetoForm",
+        "app/api/vetoes/route.ts: POST, served at /api/vetoes"
+      ],
+      "gate": {
+        "run": "node scripts/check-page.mjs veto",
+        "expect": "PAGE CHECK PASS"
+      },
+      "commit": "feat: build the Veto page",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "frontend:9",
+      "subsystem": "frontend",
+      "title": "Copy check across the pages",
+      "plan": "docs/superpowers/plans/2026-11-06-frontend.md",
+      "depends_on": [
+        "frontend:6",
+        "frontend:7",
+        "frontend:8"
+      ],
+      "effort": "low",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": [
+          "tests/copy.test.ts"
+        ]
+      },
+      "provides": [],
+      "requires": [
+        "app/page.tsx: the Tower at /",
+        "app/shifts/[slug]/page.tsx; app/shifts/latest/page.tsx",
+        "app/floors/[slug]/page.tsx; components/floor-frame.tsx: FloorFrame({ src, title })",
+        "app/vote/page.tsx",
+        "app/built/page.tsx; components/waitlist-form.tsx",
+        "app/rejected/page.tsx",
+        "app/veto/page.tsx",
+        "lib/messages.ts: proposalMessage(input); voteMessage(input); vetoMessage(input); isFresh(signedAt, now)",
+        "floor-kit/template.html, floor-kit/RULES.md, floor-kit/check-entry.ts, scripts/build-floor-kit.mjs: builds floor-kit/dist/check.mjs"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/copy.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "test: enforce the copy and wallet-free rules across pages",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "launch:1",
+      "subsystem": "launch",
+      "title": "Deploy config",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "foundation:1"
+      ],
+      "effort": "low",
+      "model_tier": "fast",
+      "files": {
+        "create": [
+          "vercel.json"
+        ],
+        "modify": [],
+        "test": [
+          "tests/deploy-config.test.ts"
+        ]
+      },
+      "provides": [
+        "vercel.json: migrates, then builds"
+      ],
+      "requires": [
+        "package.json: pinned stack, tsconfig.json with the @/ alias, vitest.config.ts"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/deploy-config.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "chore: add the deploy config",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "launch:2",
+      "subsystem": "launch",
+      "title": "README",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "frontend:9",
+        "pipeline:13"
+      ],
+      "effort": "medium",
+      "files": {
+        "create": [
+          "README.md"
+        ],
+        "modify": [],
+        "test": []
+      },
+      "provides": [],
+      "requires": [
+        ".github/workflows/shift.yml: close, crew, verify and publish jobs",
+        "app/page.tsx: the Tower at /"
+      ],
+      "gate": {
+        "run": "$want = @('# Night Crew','## Demo','## What it does','## Quickstart','## Built at Vibeathon 02: Night shift','## How the agent works','## Prompts & safety','## Run it','## Tech stack','## Roadmap','## License'); $stamp = '<!-- readme-schema: R5-agent-ai v1 -->'; $lines = Get-Content README.md -Encoding UTF8; $inFence = $false; $got = foreach ($l in $lines) { if ($l -match '^```') { $inFence = -not $inFence } elseif (-not $inFence -and $l -cmatch '^#{1,2} ') { $l } }; $ok = ($got.Count -eq $want.Count); if ($ok) { for ($i = 0; $i -lt $want.Count; $i++) { if ($got[$i] -cne $want[$i]) { $ok = $false } } }; if ($ok -and ($lines[0] -ceq $stamp)) { 'PASS' } else { 'FAIL' }",
+        "expect": "PASS"
+      },
+      "commit": "docs: write the README from schema R5-agent-ai",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "launch:3",
+      "subsystem": "launch",
+      "title": "Provision the crew's agent and environment",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "foundation:3",
+        "pipeline:8"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "Human result: repo variables CREW_AGENT_ID and CREW_ENVIRONMENT_ID"
+      ],
+      "requires": [
+        "Human result: PROBE RESULT line from crew/probe-runtime.ts, which decides the crew runtime",
+        "crew/lib/managed-agents-runtime.ts: class ManagedAgentsRuntime implements CrewRuntime"
+      ],
+      "gate": {
+        "run": "npx tsx crew/provision.ts",
+        "expect": "CREW_ENVIRONMENT_ID="
+      },
+      "commit": "chore: provision the crew's agent and environment",
+      "human_gate": true,
+      "gate_profile": "secret",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:4",
+      "subsystem": "launch",
+      "title": "Create Vercel and Neon",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "launch:1"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "Human result: DATABASE_URL in GitHub and Vercel, migrations applied"
+      ],
+      "requires": [
+        "vercel.json: migrates, then builds"
+      ],
+      "gate": {
+        "run": "npx tsx db/migrate.ts",
+        "expect": "db:migrate done"
+      },
+      "commit": "chore: create the hosting account and database",
+      "human_gate": true,
+      "gate_profile": "account",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:5",
+      "subsystem": "launch",
+      "title": "Set the attester key and register the EAS schema (cut candidate 3)",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "pipeline:11"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "Human result: secret ATTESTER_PRIVATE_KEY and repo variable EAS_SCHEMA_UID"
+      ],
+      "requires": [
+        "lib/eas.ts: RECEIPT_SCHEMA; receiptSchemaUid(); encodeAttestationData(fields); viemAttester(privateKey, schemaUid, rpcUrl?): Attester; type Attester"
+      ],
+      "gate": {
+        "run": "npx tsx crew/register-schema.ts",
+        "expect": "EAS_SCHEMA_UID="
+      },
+      "commit": "chore: register the EAS schema",
+      "human_gate": true,
+      "gate_profile": "wallet",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:6",
+      "subsystem": "launch",
+      "title": "Set the budget and shift settings",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "launch:3"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "Human result: repo variables CREW_BUILD_MODEL, CREW_SHIFT_CAP_CENTS, CREW_TOTAL_BUDGET_CENTS, VETO_ADDRESS, and secret ANTHROPIC_API_KEY"
+      ],
+      "requires": [
+        "Human result: repo variables CREW_AGENT_ID and CREW_ENVIRONMENT_ID"
+      ],
+      "gate": {
+        "run": "gh variable list",
+        "expect": "CREW_TOTAL_BUDGET_CENTS"
+      },
+      "commit": "chore: set the budget and shift settings",
+      "human_gate": true,
+      "gate_profile": "secret",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:7",
+      "subsystem": "launch",
+      "title": "Run the two rehearsals, by Sat 7 Nov 12:00 UTC",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "launch:4",
+        "launch:5",
+        "launch:6",
+        "pipeline:13"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "Human result: rehearsals r1 and r2 finished, with real costs recorded"
+      ],
+      "requires": [
+        ".github/workflows/shift.yml: close, crew, verify and publish jobs",
+        "Human result: DATABASE_URL in GitHub and Vercel, migrations applied",
+        "Human result: secret ATTESTER_PRIVATE_KEY and repo variable EAS_SCHEMA_UID",
+        "Human result: repo variables CREW_BUILD_MODEL, CREW_SHIFT_CAP_CENTS, CREW_TOTAL_BUDGET_CENTS, VETO_ADDRESS, and secret ANTHROPIC_API_KEY"
+      ],
+      "gate": {
+        "run": "gh run list --workflow shift.yml --limit 2 --json conclusion --jq .[].conclusion",
+        "expect": "success"
+      },
+      "commit": "chore: run the rehearsals",
+      "human_gate": true,
+      "gate_profile": "secret",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:8",
+      "subsystem": "launch",
+      "title": "Seed the proposals",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "launch:4",
+        "pipeline:13"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "Human result: at least 5 seeded proposals are open"
+      ],
+      "requires": [
+        "Human result: DATABASE_URL in GitHub and Vercel, migrations applied",
+        ".github/workflows/shift.yml: close, crew, verify and publish jobs"
+      ],
+      "gate": {
+        "run": "npx tsx crew/seed-proposals.ts",
+        "expect": "seeded proposal"
+      },
+      "commit": "chore: seed the first proposals",
+      "human_gate": true,
+      "gate_profile": "secret",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:9",
+      "subsystem": "launch",
+      "title": "Deploy, by Sat 7 Nov 18:00 UTC",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "launch:4",
+        "frontend:4"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "Human result: the app is live on a public URL"
+      ],
+      "requires": [
+        "Human result: DATABASE_URL in GitHub and Vercel, migrations applied",
+        "app/page.tsx: the Tower at /"
+      ],
+      "gate": {
+        "run": "node -e \"fetch(process.env.SITE_URL).then(async (r) => { const t = await r.text(); console.log(r.status === 200 && t.includes('AI dev crew that token holders command') ? 'LIVE' : 'NOT LIVE ' + r.status); })\"",
+        "expect": "LIVE"
+      },
+      "commit": "chore: deploy the walking skeleton",
+      "human_gate": true,
+      "gate_profile": "deploy",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:10",
+      "subsystem": "launch",
+      "title": "Arm the nightly job, by Sat 7 Nov 18:00 UTC",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "launch:7",
+        "launch:8",
+        "launch:9"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "Human result: SHIFTS_ARMED is true"
+      ],
+      "requires": [
+        "Human result: rehearsals r1 and r2 finished, with real costs recorded",
+        "Human result: at least 5 seeded proposals are open",
+        "Human result: the app is live on a public URL"
+      ],
+      "gate": {
+        "run": "gh variable get SHIFTS_ARMED",
+        "expect": "true"
+      },
+      "commit": "chore: arm the nightly job",
+      "human_gate": true,
+      "gate_profile": "deploy",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:11",
+      "subsystem": "launch",
+      "title": "Add the second hostname (non-blocking)",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "launch:9"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [],
+      "requires": [
+        "Human result: the app is live on a public URL"
+      ],
+      "gate": {
+        "run": "node -e \"fetch(process.env.SITE_URL + '/built').then(async (r) => { const t = await r.text(); console.log(t.includes('Floors run on their own hostname') ? 'SECOND HOST LIVE' : 'STILL MAIN HOST'); })\"",
+        "expect": "SECOND HOST LIVE"
+      },
+      "commit": "chore: serve floors from a second hostname",
+      "human_gate": true,
+      "gate_profile": "deploy",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:12",
+      "subsystem": "launch",
+      "title": "Check a real wallet, after the first live floor",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "launch:10"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "Human result: the first public floor is live"
+      ],
+      "requires": [
+        "Human result: SHIFTS_ARMED is true"
+      ],
+      "gate": {
+        "run": "node -e \"fetch(process.env.SITE_URL).then(async (r) => { const t = await r.text(); console.log(t.includes('shipped') ? 'FLOOR LIVE' : 'NO FLOOR YET'); })\"",
+        "expect": "FLOOR LIVE"
+      },
+      "commit": "chore: confirm a real wallet sees no prompt",
+      "human_gate": true,
+      "gate_profile": "wallet",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:13",
+      "subsystem": "launch",
+      "title": "Run the off-schedule shift, Sun 8 Nov afternoon",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "launch:10"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "Human result: the Sunday off-schedule shift has run"
+      ],
+      "requires": [
+        "Human result: SHIFTS_ARMED is true"
+      ],
+      "gate": {
+        "run": "gh run list --workflow shift.yml --event workflow_dispatch --limit 1 --json conclusion --jq .[0].conclusion",
+        "expect": "success"
+      },
+      "commit": "chore: run the off-schedule shift",
+      "human_gate": true,
+      "gate_profile": "secret",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:14",
+      "subsystem": "launch",
+      "title": "Run the spare off-schedule shift, Mon 9 Nov, start by 10:00 UTC",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "launch:13"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [],
+      "requires": [
+        "Human result: the Sunday off-schedule shift has run"
+      ],
+      "gate": {
+        "run": "gh run list --workflow shift.yml --event workflow_dispatch --limit 1 --json conclusion --jq .[0].conclusion",
+        "expect": "success"
+      },
+      "commit": "chore: run the spare shift",
+      "human_gate": true,
+      "gate_profile": "secret",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:15",
+      "subsystem": "launch",
+      "title": "File the submission, Mon 9 Nov 12:00 UTC",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "launch:13",
+        "launch:2"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [],
+      "requires": [
+        "Human result: the Sunday off-schedule shift has run"
+      ],
+      "gate": {
+        "run": "node -e \"console.log(require('fs').readFileSync('docs/gates/submission-draft.md','utf8').includes('TBD-post-build') ? 'NOT RESOLVED' : 'DRAFT RESOLVED')\"",
+        "expect": "DRAFT RESOLVED"
+      },
+      "commit": "docs: record the filed submission",
+      "human_gate": true,
+      "gate_profile": "submission",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:16",
+      "subsystem": "launch",
+      "title": "Decide judging-night settings, Mon 9 Nov by 21:00 UTC",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "launch:15"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [],
+      "requires": [
+        "Human result: the Sunday off-schedule shift has run"
+      ],
+      "gate": {
+        "run": "gh variable get CREW_BUILD_MODEL",
+        "expect": "claude-"
+      },
+      "commit": "chore: set the judging-night model",
+      "human_gate": true,
+      "gate_profile": "secret",
+      "allow_empty": true,
+      "status": "pending"
+    }
+  ]
+}

@@ -108,6 +108,7 @@ Vercel limits Hobby to non-commercial, personal use. That is acceptable for this
 
 ```
 app/                     Next.js App Router pages and route handlers
+components/              React components for the pages
 proxy.ts                 host routing between the main host and the floors host
 lib/                     shared code, one responsibility per file
 lib/floor-gate/          static gate, floor assembly, browser gate
@@ -293,6 +294,7 @@ Cache-Control: public, max-age=31536000, immutable
 - The floor page embeds it as `<iframe sandbox="allow-scripts" allow="" referrerpolicy="no-referrer">`, with no `allow-same-origin`.
 - **Self-navigation cannot be stopped by CSP or the sandbox.** Assigning `document.location` loads another page inside the frame. So the static gate rejects it, the browser gate fails on it, and the floor page counts the frame's `load` events and removes the frame on a second one, replacing it with a line saying the floor tried to leave its sandbox.
 - When `FLOORS_ORIGIN` is set, the route is served only from that second hostname. `proxy.ts` returns 404 for `/f/*` on the main host and for everything except `/f/*` on the floors host.
+- On the main host a floor's URL is relative, so it works on any port and any deployment URL. `frame-ancestors` is `NEXT_PUBLIC_SITE_ORIGIN` when set, otherwise the request's own host.
 - A vetoed floor returns 410.
 
 ### The second hostname does not block launch
@@ -327,7 +329,7 @@ Uses `playwright-core` with Chrome from `CHROME_PATH`. It serves the floor from 
 
 ### Proof
 
-`tests/fixtures/hostile-floors/` holds one floor per attack: wallet call, indirect wallet access, fetch exfiltration, image beacon, iframe realm trick, self-navigation, form post, storage read, `eval`, a string-built banned word, timer `this`, and listener `this`. Each fixture names the rule set that rejects it, core or extended, and must also be contained by the browser gate with the static gate switched off. Self-navigation is contained by failing the gate, not by preventing it, which is why its rule is in the core set. The launch checklist includes one manual check with the user's real wallet extension.
+`tests/fixtures/hostile-floors.ts` holds 21 floors, one per attack: wallet calls, wallet access through `this`, `defaultView`, a built-up name and discovery events, fetch exfiltration, an image beacon, an iframe realm trick, inline handlers and scripts through `innerHTML`, self-navigation, a form post, storage and cookie reads, `eval`, `Function`, string timers, timer `this`, listener `this` and `composedPath`. Each fixture names the rule set that rejects it, core or extended, and must also be contained by the browser gate with the static gate switched off. Self-navigation is contained by failing the gate, not by preventing it, which is why its rule is in the core set. The launch checklist includes one manual check with the user's real wallet extension.
 
 **Verified 2026-11-06 in a spike** against real Chrome with `playwright-core` 1.65.0 and a fake provider in both configurable and non-configurable forms:
 
@@ -404,6 +406,7 @@ Offline recovery first. If the recovered address differs, viem's `publicClient.v
 - Before the close, pages show `votes.weight_estimate`, read at vote time and marked as an estimate.
 - Ranking: weight descending, then wallets descending, then proposal id ascending.
 - With no votes, the crew builds the oldest open proposal and the receipt says zero votes. With no open proposals, the floor goes dark and no inference is spent.
+- A proposal stays open if its build fails, and it leaves the ranking after 2 failed attempts, so one bad proposal cannot burn every night's budget.
 - Weight is linear, as the brief says, so a large holder can decide a night alone. The tally always shows weight and wallet count together.
 
 ## 8. Receipts and attestation
@@ -419,6 +422,7 @@ type ReceiptBundle = {
   proposal: { id: number; text: string; author: string; seeded: boolean } | null;
   outcome: "shipped" | "failed" | "dark";
   failure: { stage: "close" | "triage" | "build" | "review" | "verify" | "publish"; reason: string } | null;
+  dark_reason: string | null;
   agent_identity: "night-crew";
   agent_tool: "Claude Managed Agents";
   model_provider: "Anthropic";
@@ -481,6 +485,7 @@ create unique index one_open_shift on shifts (status) where status = 'open';
 create table proposals (
   id            bigserial primary key,
   text          text not null check (char_length(text) between 1 and 200),
+  normalised    text not null,                     -- lower case, single spaces
   author        text not null,
   signature     text,
   signed_at     timestamptz,
@@ -488,11 +493,13 @@ create table proposals (
   status        text not null default 'open' check (status in ('open','built','rejected','vetoed')),
   status_reason text,
   status_category text,
+  failed_attempts integer not null default 0,
   shift_opened  bigint not null references shifts(id),
   built_in      bigint references shifts(id),
   created_at    timestamptz not null default now()
 );
 create unique index one_proposal_per_wallet_per_shift on proposals (author, shift_opened) where seeded = false;
+create unique index one_open_copy_of_a_proposal on proposals (normalised) where status = 'open';
 
 create table votes (
   shift_id        bigint not null references shifts(id),
@@ -515,8 +522,8 @@ create table floors (
   script_hashes text not null,                     -- space-separated CSP sources
   status      text not null default 'lit' check (status in ('lit','vetoed')),
   dark_reason text,
-  screenshot_wide   bytea,
-  screenshot_narrow bytea
+  screenshot_wide   text,                            -- base64 PNG
+  screenshot_narrow text
 );
 
 create table receipts (
@@ -610,7 +617,7 @@ Failed and dark public shifts both render as dark floors on the tower. The recei
 - **Vitest** with PGlite for everything touching the database. No Docker and no external services.
 - **Real Chrome** for the browser gate and the hostile floor corpus, via `CHROME_PATH`.
 - **Pipeline test:** `tests/pipeline.e2e.test.ts` runs close, crew, verify and publish with a fake `CrewRuntime`, a fake triage and review model, a fake chain reader and a fake attester. The whole pipeline can be built and proven before the user's key exists.
-- **Page gate:** each page task runs `scripts/check-page.mjs <route>`, which starts the app on a local port with seeded data, runs the skill's `check.mjs` at the five sizes and exits with the checker's code.
+- **Page gate:** each page task runs `scripts/check-page.mjs <route>`, which builds the app, starts it on a local port with seeded data, runs the skill's `check.mjs` at the five sizes and exits with the checker's code. Routes have no leading slash, because Git Bash rewrites `/` into a Windows path. The Floor page adds `--expect-floor`, because the checker cannot see inside a frame and passes a broken one.
 - **Verified 2026-11-06:** `check.mjs --url http://127.0.0.1:<port>/<path>` works against both `next dev` and `next start` on Next 16.4.5 with TypeScript 7.0.2. It exited 0 with no findings at all five sizes on a test page. No static export and no `--root`.
 
 ## 13. Cut candidates
@@ -659,6 +666,7 @@ Versions read from npm on 2026-11-06.
 | `viem` | 2.57.16 |
 | `wagmi` | 3.7.11 |
 | `@tanstack/react-query` | 5.106.1 |
+| `@coinbase/wallet-sdk` | 4.3.7 |
 | `@anthropic-ai/sdk` | 1.6.0 |
 | `@neondatabase/serverless` | 1.2.0 |
 | `@electric-sql/pglite` | 0.5.15 |
@@ -674,7 +682,18 @@ Versions read from npm on 2026-11-06.
 
 Chrome on this laptop: `C:\Program Files\Google\Chrome\Application\chrome.exe`. GitHub's `ubuntu-latest` runner includes Chrome.
 
-## 16. Design decisions
+## 16. Reference build
+
+All non-UI code and all seven pages were built in a throwaway reference build on 2026-11-06, then replayed task by task in clean folders, so each plan task carries code that already passed its gate. The build found defects the design alone did not:
+
+- The floor wrapper first sat inside a closure holding the real `window`, and timer callbacks received the real `window` as `this`. Both are closed, and both are in the hostile set.
+- The floor page's frame broke on any port but one while the layout checker passed. The URL is now relative, and the gate proves the floor renders.
+- Kit scripts raced React hydration, so they now load after it.
+- Proposals ranked by weight as text, so 52,000 sorted above 509,010. Ranking is now numeric, with a test.
+
+This does not replace Step 2. The orchestrator still builds every task from the plans and proves every gate.
+
+## 17. Design decisions
 
 | Question | Answer | Source |
 |---|---|---|
