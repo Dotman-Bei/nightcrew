@@ -12,3 +12,10 @@ dist/
 out/
 .vercel/
 .DS_Store
+
+# Local state
+next-env.d.ts
+tsconfig.tsbuildinfo
+shift-work/
+.taste-skill/
+floor-kit/dist/

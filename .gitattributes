@@ -1,0 +1,2 @@
+# Every checkout uses LF, on Windows too. Gates and hashes read these files byte for byte.
+* text=auto eol=lf

@@ -1,0 +1,45 @@
+{
+  "name": "nightcrew",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev -H 127.0.0.1 -p 3000",
+    "build": "next build",
+    "start": "next start -H 127.0.0.1 -p 3000",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:migrate": "tsx db/migrate.ts",
+    "kit": "node scripts/build-floor-kit.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.6.0",
+    "@coinbase/wallet-sdk": "4.3.7",
+    "@electric-sql/pglite": "0.5.15",
+    "@neondatabase/serverless": "1.2.0",
+    "@tanstack/react-query": "5.106.1",
+    "acorn": "8.19.0",
+    "acorn-walk": "8.3.5",
+    "diff": "9.0.0",
+    "next": "16.4.5",
+    "parse5": "8.1.0",
+    "playwright-core": "1.65.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "viem": "2.57.16",
+    "wagmi": "3.7.11",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.0",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "esbuild": "0.28.2",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.1.0"
+  }
+}
