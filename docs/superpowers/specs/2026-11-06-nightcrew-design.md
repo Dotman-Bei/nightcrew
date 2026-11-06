@@ -178,7 +178,7 @@ Publish is idempotent per shift, so a failed run can be re-run from its artifact
 
 **Chosen by the user: Managed Agents in a sealed sandbox.** Rejected: `claude-code-action`, because its docs describe no network egress control, call secret scrubbing best-effort, and say injection risk is reduced, not eliminated.
 
-**Fallback:** a Messages API loop on the GitHub runner with no shell, only `write_file`, `read_file` and `run_floor_check` tools. It is used only if the first human gate proves the key lacks Managed Agents access. The `CrewRuntime` interface keeps the swap to one implementation file. The fallback is a plan regeneration, not pre-built code.
+**Fallback:** a Messages API loop on the GitHub runner with no shell, only `write_file`, `read_file` and `run_floor_check` tools. It is used only if the runtime probe forces it (see the decision point below). The `CrewRuntime` interface keeps the swap to one implementation file. The fallback is a plan regeneration, not pre-built code.
 
 ```ts
 interface CrewRuntime {
@@ -194,9 +194,9 @@ interface CrewRuntime {
 - **Session** (one per shift): `agent_with_overrides` sets `model: { id: CREW_BUILD_MODEL, effort: "medium" }`. `budget: { type: "limit", max_list_cost: { amount: CREW_SHIFT_CAP_CENTS, currency: "USD" } }`. Resources are the floor kit files only. No GitHub resource, no vault.
 - Scheduled deployments are not used, because their `initial_events` are fixed while each night's brief differs. GitHub Actions is the trigger.
 
-The docs list the cloud sandbox as Ubuntu 24.04 with Node 22 and Playwright with Chromium at `/opt/pw-browsers/chromium`, so the agent can run the real gate offline. The first human gate proves this.
+The docs list the cloud sandbox as Ubuntu 24.04 with Node 22 and Playwright with Chromium at `/opt/pw-browsers/chromium`, so the agent can run the real gate offline. The runtime probe proves this.
 
-### The first human gate: `crew/probe-runtime.ts`
+### The runtime probe: `crew/probe-runtime.ts`
 
 With the user's key in the environment, it creates the environment and agent, starts one Haiku session with a 5-cent cap, and asks the agent to report as JSON: the Node version, whether Playwright launches Chromium, and whether `curl https://example.com` fails. It exits 0 only if the session ran, Chromium launched and the network is sealed. It also prints how long the session took, because a new account may start on a lower rate-limit tier.
 
@@ -678,7 +678,7 @@ Chrome on this laptop: `C:\Program Files\Google\Chrome\Application\chrome.exe`. 
 
 | Question | Answer | Source |
 |---|---|---|
-| Cut order at the checkpoint | Overtime, staking half of weight, attestation to a follow-up shift | User, 2026-11-06 |
+| Cut order at the checkpoint | Overtime, staking half of weight, attestation to a follow-up shift, then a trimmed static gate | User, 2026-11-06, extended in the revision |
 | Crew runtime | Managed Agents in a sealed sandbox, own loop as the fallback | User, 2026-11-06 |
 | Credit | $5, the user's stated limit | User, 2026-11-06 |
 | Build model | Sonnet 5.5 for rehearsal r1 and evidence, Haiku 5.5 for rehearsal r2, triage and review | User, 2026-11-06 |
