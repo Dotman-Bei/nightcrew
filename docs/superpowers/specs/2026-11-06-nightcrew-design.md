@@ -21,14 +21,18 @@ Pulled from the kickoff, the brief and the runsheet.
 | UTC | Milestone |
 |---|---|
 | Fri 6 Nov, by 18:00 | Step 1 approved and pushed |
-| Fri 6 Nov, by 20:00 | The user's day-1 dependencies done; Step 2 starts, pipeline first |
+| Fri 6 Nov, by 20:00 | The user's other day-1 dependencies done; Step 2 starts, pipeline first |
+| Fri 6 Nov, by 22:00 | `ANTHROPIC_API_KEY` funded and `crew/probe-runtime.ts` run, so the Managed Agents answer is in (section 5) |
+| Sat 7 Nov, 06:00 | Last safe moment for that answer (section 5) |
 | Sat 7 Nov, 12:00 | Checkpoint: one end-to-end rehearsal done |
-| Sat 7 Nov, 18:00 | Walking skeleton live on a public URL, nightly job armed |
+| Sat 7 Nov, 18:00 | Walking skeleton live on a public URL, nightly job armed. A missing second hostname does not hold this (section 6) |
 | Sat 7 Nov, 22:00 | Scheduled shift 1 |
 | Sun 8 Nov, 12:00 | Feature freeze |
 | Sun 8 Nov, afternoon | One labelled off-schedule shift |
 | Sun 8 Nov, 22:00 | Scheduled shift 2 |
-| Mon 9 Nov, 12:00 | At least 3 labelled shifts on record; the user files the submission |
+| Mon 9 Nov, start by 10:00 | Spare labelled off-schedule shift, run only if fewer than 3 floors are on record |
+| Mon 9 Nov, 12:00 | At least 3 floors on record; the user files the submission |
+| Mon 9 Nov, after filing | The user decides judging-night settings from real costs (below) |
 | Mon 9 Nov, 22:00 | Hard close |
 
 ### Inference budget (binding)
@@ -37,11 +41,27 @@ $5 of prepaid Anthropic credit, the user's stated limit. Prices verified on 2026
 
 | Work | Model | Cap per session | Estimated cost (until the first real run) |
 |---|---|---|---|
-| Build, rehearsals and evidence shifts | `claude-sonnet-5-5` | $0.60 | about $0.33 |
-| Build, judging nights (9 to 15 Nov) | `claude-haiku-5-5` | $0.10 | about $0.04 |
+| Runtime probe, once | `claude-haiku-5-5` | $0.05 | under $0.05 |
+| Build, rehearsal r1 and evidence shifts, including the spare | `claude-sonnet-5-5` | $0.60 | about $0.33 |
+| Build, rehearsal r2, so Monday's decision has a real Haiku cost and floor to judge | `claude-haiku-5-5` | $0.10 | about $0.04 |
+| Build, judging nights (9 to 15 Nov) | decided on Monday, below | | |
 | Triage and review, every shift | `claude-haiku-5-5` | none, single calls | about $0.01 |
 
-Worst case across 2 rehearsals, 3 evidence shifts and 7 judging nights is about $3.90. A guard stops new crew work when recorded spend reaches 450 cents (section 8).
+Through filing, with the spare used, that is 5 Sonnet builds, 1 Haiku build, the probe and 6 rounds of triage and review: worst case about $3.21, estimated about $1.80. A guard stops new crew work when recorded spend reaches `CREW_TOTAL_BUDGET_CENTS` (section 8).
+
+#### Judging-night settings: a Monday decision
+
+The build model for the 7 judging nights is deliberately not fixed here. The user decides on Monday after filing, using the real costs from rehearsals and evidence shifts.
+
+The inputs are `remaining`, which is `CREW_TOTAL_BUDGET_CENTS` minus recorded spend, checked against the Console, and `needed`, which is 7 times the measured average cost of a Sonnet shift.
+
+| Option | When it fits | Settings |
+|---|---|---|
+| Stay on Sonnet | `needed` is at most `remaining` | No change: `claude-sonnet-5-5`, `60` |
+| Move to Haiku | Credit is short and rehearsal r2's floor was good enough | `claude-haiku-5-5`, `10`. At most about $0.77 for 7 nights |
+| Top up $5 | Credit is short, Haiku's floor was not good enough, and the user chooses to spend it | Stay on Sonnet, and set `CREW_TOTAL_BUDGET_CENTS` to `950` |
+
+If no decision is made by Mon 9 Nov 21:00 UTC, settings stay as they are, and the guard protects the credit: once it trips, later nights go dark with the reason "credit budget reached".
 
 ## 2. Terms
 
@@ -52,6 +72,7 @@ Worst case across 2 rehearsals, 3 evidence shifts and 7 judging nights is about 
 - **Dark floor:** a public shift that shipped nothing, for any reason. It still has a receipt.
 - **Receipt:** the public record of one shift, passed or failed, anchored by an attestation on Base.
 - **Rehearsal:** a full pipeline run labelled as a test. It stays off the tower, and the how-it-was-built page counts rehearsals openly.
+- **On record:** a public shift, scheduled or off-schedule, that shipped a lit floor with a live receipt. Failed and dark shifts are published but do not count, and neither do rehearsals. An attestation still pending does not stop a floor counting, because attestation is a cut candidate. The evidence target is at least 3 floors on record by Mon 9 Nov 12:00 UTC.
 
 ## 3. Architecture
 
@@ -70,7 +91,7 @@ Vercel limits Hobby to non-commercial, personal use. That is acceptable for this
                  +----+--------------------------------+----+
                       |                                |
                       v                                v
-                 Neon Postgres  <---------------  floors host (second hostname)
+                 Neon Postgres  <---------------  floors host (optional second hostname)
                       ^                           serves floors under strict CSP
                       |
    +------------------+------------------------------------------+
@@ -177,7 +198,20 @@ The docs list the cloud sandbox as Ubuntu 24.04 with Node 22 and Playwright with
 
 ### The first human gate: `crew/probe-runtime.ts`
 
-With the user's key in the environment, it creates the environment and agent, starts one Haiku session with a 5-cent cap, and asks the agent to report as JSON: the Node version, whether Playwright launches Chromium, and whether `curl https://example.com` fails. It exits 0 only if the session ran, Chromium launched and the network is sealed.
+With the user's key in the environment, it creates the environment and agent, starts one Haiku session with a 5-cent cap, and asks the agent to report as JSON: the Node version, whether Playwright launches Chromium, and whether `curl https://example.com` fails. It exits 0 only if the session ran, Chromium launched and the network is sealed. It also prints how long the session took, because a new account may start on a lower rate-limit tier.
+
+The script comes from the first two build tasks, the scaffold and the probe script, so the build does not have to reach the crew work first.
+
+### The fallback decision point
+
+**The decision is made when the probe runs, targeted for Fri 6 Nov by 22:00 UTC. The last safe moment is Sat 7 Nov 06:00 UTC,** which leaves time to regenerate and still rehearse by 12:00. Crew work against a fake runtime continues either way. Only the task that implements the real Managed Agents runtime waits for the answer.
+
+| Probe result | Decision |
+|---|---|
+| Session ran, network sealed, Chromium launched | Managed Agents. The build continues as planned. |
+| Session ran, network sealed, Chromium did not launch | Stay on Managed Agents. The agent's `check.mjs` runs only the static gate in the sandbox. Browser failures then surface in `verify`, so the shift fails rather than self-repairing. |
+| API refuses access, or the network is not sealed | Fallback: the own-loop runtime above. The architect regenerates the crew runtime tasks, replacing one implementation file and its test. An unsealed network is not negotiable, because proposals are hostile text. |
+| Not run by Sat 7 Nov 06:00 UTC | The Sat 12:00 rehearsal is at risk. The guide raises it with the user, who either runs the probe at once or takes the fallback, which needs only an API key. |
 
 ### Provisioning values
 
@@ -201,16 +235,24 @@ A floor is one HTML file of at most 256 KB, with inline CSS and JS only. It has 
 
 ### Static gate: `lib/floor-gate/static.ts`
 
-Parses with `parse5` and `acorn`, and rejects on any finding. Its job is to give the agent early, clear feedback and to catch what the runtime cannot; the runtime layers below hold without it.
+Parses with `parse5` and `acorn`, and rejects on any finding. Its job is to give the agent early, clear feedback and to catch what the runtime cannot. The rules are in two sets, built as separate tasks.
 
+**Core rules (must-have).** They guard the one thing the runtime cannot stop, a frame navigating itself, plus the file's structure:
+
+- **File:** one HTML file of at most 256 KB.
 - **HTML:** an element allowlist. Rejects `script[src]`, `script[type=module]`, `link`, `iframe`, `object`, `embed`, `base`, `meta[http-equiv]`, `form[action]`, any `on*` attribute, and any `src`, `href`, `action`, `formaction`, `srcset`, `poster`, `background` or `ping` value that is not a `#fragment` or `data:` URL. Rejects any non-`data:` `url()` in CSS.
-- **JS, banned as a bare name or a member name:** `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `RTCPeerConnection`, `sendBeacon`, `importScripts`, `Worker`, `SharedWorker`, `serviceWorker`, `postMessage`, `MessageChannel`, `BroadcastChannel`, `localStorage`, `sessionStorage`, `indexedDB`, `cookie`, `caches`, `eval`, `Function`, `__proto__`, `globalThis`, `location`, `navigation`, `history`, `defaultView`, `ownerDocument`, `getRootNode`, `contentWindow`, `contentDocument`, `frameElement`, `ethereum`, `web3`, `solana`, `phantom`, `write`, `writeln`, `execCommand`, `__ncw`. Also `.constructor` as a member; a class's own `constructor` method is allowed. Also dynamic `import()`.
-- **JS, banned as a bare global only:** `self`, `top`, `parent`, `frames`, `open`, `opener`, `chrome`, `external`. Member uses such as `rect.top` and local variables of the same name are fine.
-- **`window` and `document`:** each may only appear as the object of a static member access. `const d = document` and `document[x]` are rejected. `window` members must be in the allowlist: `addEventListener`, `removeEventListener`, `innerWidth`, `innerHeight`, `devicePixelRatio`, `matchMedia`, `getComputedStyle`, `requestAnimationFrame`, `cancelAnimationFrame`, `setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`.
+- **JS, banned as a bare name or a member name:** `location`, `navigation`, `history`, `ownerDocument`, `getRootNode`, `write`, `writeln`. Also dynamic `import()`.
+- **`document`:** may only appear as the object of a static member access. `const d = document` and `document[x]` are rejected.
 - **`document.createElement`:** rejected with a non-literal argument, or with `iframe`, `script`, `object`, `embed`, `link`, `base`, `meta` or `form`.
+
+**Extended rules (cut candidate 4).** They catch mistakes earlier and with clearer messages, but the runtime layers already contain what they cover:
+
+- **JS, banned as a bare name or a member name:** `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `RTCPeerConnection`, `sendBeacon`, `importScripts`, `Worker`, `SharedWorker`, `serviceWorker`, `postMessage`, `MessageChannel`, `BroadcastChannel`, `localStorage`, `sessionStorage`, `indexedDB`, `cookie`, `caches`, `eval`, `Function`, `__proto__`, `globalThis`, `defaultView`, `contentWindow`, `contentDocument`, `frameElement`, `ethereum`, `web3`, `solana`, `phantom`, `execCommand`, `__ncw`. Also `.constructor` as a member; a class's own `constructor` method is allowed.
+- **JS, banned as a bare global only:** `self`, `top`, `parent`, `frames`, `open`, `opener`, `chrome`, `external`. Member uses such as `rect.top` and local variables of the same name are fine.
+- **`window`:** may only appear as the object of a static member access to an allowlisted name: `addEventListener`, `removeEventListener`, `innerWidth`, `innerHeight`, `devicePixelRatio`, `matchMedia`, `getComputedStyle`, `requestAnimationFrame`, `cancelAnimationFrame`, `setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`.
 - **String and template literals:** cooked values, so escapes do not hide content, are scanned for `ethereum`, `web3`, `solana`, `phantom`, `eip6963`, `metamask`, `http://`, `https://` and `javascript:`. Matching is case-sensitive, so a label like "Ethereum gas" passes.
 
-The kit's `check.mjs` is a bundle of this same code, so the agent sees what the gate sees.
+The kit's `check.mjs` is a bundle of this same code plus the browser gate, so the agent sees what the gate sees.
 
 ### Assembly: `lib/floor-gate/assemble.ts`
 
@@ -250,8 +292,19 @@ Cache-Control: public, max-age=31536000, immutable
 - The CSP `sandbox` directive means the floor is sandboxed even when opened directly in a tab, so its origin is opaque and it has no cookies or storage.
 - The floor page embeds it as `<iframe sandbox="allow-scripts" allow="" referrerpolicy="no-referrer">`, with no `allow-same-origin`.
 - **Self-navigation cannot be stopped by CSP or the sandbox.** Assigning `document.location` loads another page inside the frame. So the static gate rejects it, the browser gate fails on it, and the floor page counts the frame's `load` events and removes the frame on a second one, replacing it with a line saying the floor tried to leave its sandbox.
-- The route is served only from `FLOORS_ORIGIN`, a second hostname. `proxy.ts` returns 404 for `/f/*` on the main host and for everything except `/f/*` on the floors host. If `FLOORS_ORIGIN` is unset, as in local dev, the route serves from the main host.
+- When `FLOORS_ORIGIN` is set, the route is served only from that second hostname. `proxy.ts` returns 404 for `/f/*` on the main host and for everything except `/f/*` on the floors host.
 - A vetoed floor returns 410.
+
+### The second hostname does not block launch
+
+**If `FLOORS_ORIGIN` is not ready by Sat 7 Nov 18:00 UTC, the walking skeleton ships anyway, serving floors from the main host under the CSP sandbox.** Setting the variable later moves floors to the second hostname with no code change and no change to floor URLs on the tower.
+
+The sandbox is what isolates a floor, not the hostname. Verified 2026-11-06 in main-host mode, with a site cookie set: the floor's origin was `null`, `document.cookie` threw `SecurityError` both in the frame and when the floor was opened directly in a tab, the fake provider was not touched, and the tool still worked. The main site sets no login cookie and keeps wallet state only on `/vote`. What a second hostname adds is a backstop if the `sandbox` directive were ever missing from a response.
+
+`/built` states which mode is live, from `FLOORS_ORIGIN`:
+
+- **Second hostname:** "Floors run on their own hostname, in a sandboxed frame with no storage, no network and no wallet access."
+- **Main host:** "Floors run from this site's own hostname for now, in a sandboxed frame with no storage, no network and no wallet access. The browser treats each floor as a separate, unknown origin, so it cannot read this site's data. A separate hostname is the next step, as a backstop."
 
 ### Wallet-free pages
 
@@ -274,7 +327,7 @@ Uses `playwright-core` with Chrome from `CHROME_PATH`. It serves the floor from 
 
 ### Proof
 
-`tests/fixtures/hostile-floors/` holds one floor per attack: wallet call, indirect wallet access, fetch exfiltration, image beacon, iframe realm trick, self-navigation, form post, storage read, `eval`, a string-built banned word, timer `this`, and listener `this`. Each must be rejected by the static gate, and separately contained by the browser gate with the static gate switched off. Self-navigation is contained by failing the gate, not by preventing it. The launch checklist includes one manual check with the user's real wallet extension.
+`tests/fixtures/hostile-floors/` holds one floor per attack: wallet call, indirect wallet access, fetch exfiltration, image beacon, iframe realm trick, self-navigation, form post, storage read, `eval`, a string-built banned word, timer `this`, and listener `this`. Each fixture names the rule set that rejects it, core or extended, and must also be contained by the browser gate with the static gate switched off. Self-navigation is contained by failing the gate, not by preventing it, which is why its rule is in the core set. The launch checklist includes one manual check with the user's real wallet extension.
 
 **Verified 2026-11-06 in a spike** against real Chrome with `playwright-core` 1.65.0 and a fake provider in both configurable and non-configurable forms:
 
@@ -298,7 +351,23 @@ The user can veto an open proposal or darken a shipped floor by signing with the
 
 ### Proposing
 
-`POST /api/proposals` accepts `{ text, address, signature, signedAt }`. Text is one sentence of 1 to 200 characters. `signedAt` must be within 10 minutes of the server clock. Limits: one proposal per wallet per shift, 50 per shift overall. Proposals stay open until built, rejected or vetoed. Seeded proposals are inserted by `crew/seed-proposals.ts` with `seeded = true` and are labelled on every page that shows them.
+`POST /api/proposals` accepts `{ text, address, signature, signedAt }`. Text is one sentence of 1 to 200 characters. `signedAt` must be within 10 minutes of the server clock. Proposals stay open until built, rejected or vetoed. Seeded proposals are inserted by `crew/seed-proposals.ts` with `seeded = true` and are labelled on every page that shows them.
+
+**Limits:**
+
+- One proposal per wallet per shift.
+- Five proposals per IP per hour, counted in `rate_events` (section 9) using a salted hash of Vercel's client IP. Rows older than 24 hours are deleted on each write, so no IP history builds up.
+- An exact duplicate of an open proposal, after normalising case and whitespace, is refused, and the response points the wallet at the existing proposal to vote for.
+- **There is no overall cap per shift.** A cap would let anyone with enough fresh wallets lock real holders out for the night, and it would save nothing, because triage reads at most the top 5 whatever the list's length.
+
+**How the open list stays usable:**
+
+- **Spam cannot jump the queue.** A proposal with no votes ranks below every proposal with votes, and zero-vote proposals rank oldest first, so a flood of new proposals sits at the back.
+- **`/vote` shows two lists.** "Top 5" is ordered by current weight estimate, which is what triage reads first. "All open proposals" is newest first, 20 to a page, with server-side `?page=` paging.
+- **The tower shows only the top 5** and the total count.
+- **The list shrinks by itself.** Built, rejected and vetoed proposals leave it.
+
+**A known limit, recorded rather than engineered away:** someone who votes for five bad proposals can force one dark night, because triage stops after 5. Those five are then rejected and leave the list, so repeating it needs five new proposals each time, and the user can veto ahead of the close.
 
 Signed text, from `lib/messages.ts`:
 
@@ -311,7 +380,7 @@ This signature costs no gas and moves no funds.
 
 ### Voting
 
-`POST /api/votes` accepts `{ shiftSlug, proposalId, address, signature, signedAt }`. One vote per wallet per shift, changeable until the close by upsert, where a later `signedAt` wins. Votes after `closes_at` are refused. Votes do not carry over to the next shift.
+`POST /api/votes` accepts `{ shiftSlug, proposalId, address, signature, signedAt }`. One vote per wallet per shift, changeable until the close by upsert, where a later `signedAt` wins. Votes after `closes_at` are refused. Votes do not carry over to the next shift. Votes are limited to 60 per IP per hour, because an invalid signature can trigger an RPC call during verification.
 
 ```
 Night Crew feature vote
@@ -383,7 +452,7 @@ type ReceiptBundle = {
 
 ### Spend guard
 
-`shifts.cost_cents` records each shift's spend. Default `CREW_TOTAL_BUDGET_CENTS` is 450, which leaves 50 cents unallocated. The probe and any failed session's reported cost are included where known.
+`shifts.cost_cents` records each shift's spend, including any failed session's reported cost. `CREW_TOTAL_BUDGET_CENTS` starts at 450, which leaves 50 cents unallocated, and that margin covers the probe, which is not a shift. After a $5 top-up it becomes 950.
 
 ## 9. Data model
 
@@ -480,10 +549,15 @@ create table waitlist (
   id         bigserial primary key,
   community  text not null check (char_length(community) between 1 and 80),
   contact    text not null check (char_length(contact) between 1 and 120),
-  ip_hash    text not null,
   created_at timestamptz not null default now(),
   unique (community, contact)
 );
+
+create table rate_events (
+  key text not null,                               -- e.g. 'proposal:<salted ip hash>'
+  at  timestamptz not null default now()
+);
+create index rate_events_key_at on rate_events (key, at);
 ```
 
 ### Database access
@@ -501,8 +575,8 @@ A public shift's slug is the next integer. Every public shift is one floor, lit 
 1. **Tower** `/`: the landing page and the product. Six screens: hero with the live tower and the newest floor lit, last night's floor, tonight's vote, how a shift works, the whole tower with the close of the build window marked, and the close and footer. The first screen alone answers what this is, what shipped last night, what is being voted on tonight, and how to vote.
 2. **Receipt** `/shifts/[slug]`: proposal, tally, triage decision, transcript, diff against the blank floor, test results, cost, attestation link, downloadable parts.
 3. **Floor** `/floors/[slug]`: the tool in its sandbox, one click from its receipt.
-4. **Vote and propose** `/vote`: connect a wallet, vote, propose.
-5. **How it was built** `/built`: the product's own build, the rehearsal count, the security model and what stays open, the waitlist form.
+4. **Vote and propose** `/vote`: connect a wallet, vote, propose. Shows the top 5 and the paged list of all open proposals (section 7).
+5. **How it was built** `/built`: the product's own build, the rehearsal count, the security model and what stays open, which hostname floors are served from (section 6), the waitlist form.
 6. **Rejected** `/rejected`: every triage rejection and veto with its reason.
 7. **Veto** `/veto`: accepts only the `VETO_ADDRESS` signature, not linked from public pages, `noindex`.
 
@@ -524,6 +598,10 @@ Pages 1, 2, 3, 5 and 6 are server-rendered, wallet-free, and use `export const r
 | Attestation fails | Shift stands, attestation pending, retried next publish |
 | Publish fails | The run is red and re-runnable from its artifacts; nothing is half-written because the writes are one transaction |
 | Base RPC fails during tally | Failed at stage `close` |
+| Top 5 proposals all rejected | Dark floor, reason "no proposal passed triage". The five leave the list |
+| Second hostname not ready by Sat 18:00 UTC | Floors serve from the main host under the CSP sandbox; `/built` says so |
+| Fewer than 3 floors on record by Mon 10:00 UTC | Run the spare off-schedule shift |
+| Fewer than 3 floors on record at Mon 12:00 UTC | File anyway with the true count. The submission stays editable until 22:00, so another off-schedule shift can still be added if credit allows |
 
 Failed and dark public shifts both render as dark floors on the tower. The receipt names the stage and the reason.
 
@@ -542,30 +620,32 @@ For the Sat 7 Nov 12:00 UTC checkpoint, confirmed by the user, in this order. Th
 1. **Overtime.** Already cut at design. It needs Vercel Pro at about $20 a month, which is four times the inference budget, plus a stored GitHub token on the app server. The plans carry no Overtime tasks. Consequence: a judge cannot watch the whole loop in one sitting, so transcripts and receipts carry that proof.
 2. **The staking half of vote weight.** Plan tasks are tagged. If cut, wallets holding only staked $VIBES count at minimal weight. About 82.8M was staked on 2026-11-06, out of a 1B supply.
 3. **The attestation moving to a follow-up shift.** Plan tasks are tagged. Receipts stay intact and show "attestation pending".
+4. **A trimmed static gate.** Added by the user, and the architect agrees with one exception. The extended rules (section 6) can go, because the Chrome spike ran every attack with no static gate at all and the runtime layers contained all of them except self-navigation. The core rules stay, because they are the only early defence against a floor that navigates itself on a delay too long for the browser gate's run to see. The plan builds the extended rules as their own task, so cutting them means not building it. Consequence: agent mistakes such as calling `fetch` surface as runtime errors rather than clear messages. `check.mjs` still shows them to the agent, because it also runs the browser gate.
 
 ## 14. Human gates
 
-Executors never run these. Each is a `human_gate: true` task.
+Executors never run these. Each is a `human_gate: true` task. They are listed in the order they fall due, and the first two come first so the Managed Agents answer lands on Fri 6 Nov.
 
-| Gate | Names | Notes |
-|---|---|---|
-| Fund the API key | `ANTHROPIC_API_KEY` | $5 credit. Set as a GitHub secret. |
-| Probe the runtime | `ANTHROPIC_API_KEY` | `crew/probe-runtime.ts`. If it fails on access, the fallback in section 5 applies. |
-| Provision agent and environment | `CREW_AGENT_ID`, `CREW_ENVIRONMENT_ID` | Repo variables. |
-| Vercel and Neon | `DATABASE_URL` | One account via the Marketplace. Secret in GitHub, env var in Vercel. |
-| Hostnames | `NEXT_PUBLIC_SITE_ORIGIN`, `FLOORS_ORIGIN` | Main and floors hostnames on one Vercel project. |
-| Deploy | none | First deploy, then each deploy after. |
-| Attester key | `ATTESTER_PRIVATE_KEY` | GitHub secret, never in chat or the repo. The wallet is already funded. |
-| Register the EAS schema | `EAS_SCHEMA_UID` | Run once with the attester key. Repo variable. |
-| Your wallet address | `VETO_ADDRESS` | Public. Used for vetoes and as `founder_address`. |
-| Budget settings | `CREW_BUILD_MODEL`, `CREW_SHIFT_CAP_CENTS`, `CREW_TOTAL_BUDGET_CENTS` | Repo variables: `claude-sonnet-5-5`, `60`, `450`. |
-| Seed proposals | `DATABASE_URL` | `crew/seed-proposals.ts`, at least 5, labelled as seeded. |
-| Rehearsal | `gh workflow run` | Spends credit. By Sat 12:00 UTC. |
-| Arm the nightly job | `SHIFTS_ARMED` | Repo variable set to `true`, by Sat 18:00 UTC. |
-| Off-schedule shift | `gh workflow run` | Sunday afternoon, after the freeze. |
-| Real-wallet check | none | Open one live floor with a real wallet extension and confirm no prompt. |
-| Switch to judging settings | `CREW_BUILD_MODEL`, `CREW_SHIFT_CAP_CENTS` | After filing on Monday: `claude-haiku-5-5`, `10`. |
-| File the submission | none | The user, wallet-gated, via Step 3. |
+| # | Gate | Names | Due (UTC) | Notes |
+|---|---|---|---|---|
+| 1 | Fund the API key | `ANTHROPIC_API_KEY` | Fri 6 Nov | $5 credit. Needed locally for gate 2, and later as a GitHub secret. |
+| 2 | Probe the runtime | `ANTHROPIC_API_KEY` | Fri 6 Nov, by 22:00 | `crew/probe-runtime.ts`, built by the first two build tasks. Its result is the fallback decision (section 5). |
+| 3 | Provision agent and environment | `CREW_AGENT_ID`, `CREW_ENVIRONMENT_ID` | Sat 7 Nov, morning | Repo variables. |
+| 4 | Vercel and Neon | `DATABASE_URL`, `RATE_LIMIT_SALT` | Sat 7 Nov, before the rehearsal | One account via the Marketplace. `DATABASE_URL` is a secret in GitHub and an env var in Vercel. `RATE_LIMIT_SALT` is a random string, an env var in Vercel. |
+| 5 | Attester key | `ATTESTER_PRIVATE_KEY` | Sat 7 Nov, before the rehearsal | GitHub secret, never in chat or the repo. The wallet is already funded. |
+| 6 | Register the EAS schema | `EAS_SCHEMA_UID` | Sat 7 Nov, before the rehearsal | Run once with the attester key. Repo variable. |
+| 7 | Your wallet address | `VETO_ADDRESS` | Sat 7 Nov, before the rehearsal | Public. Used for vetoes and as `founder_address`. |
+| 8 | Budget settings | `CREW_BUILD_MODEL`, `CREW_SHIFT_CAP_CENTS`, `CREW_TOTAL_BUDGET_CENTS` | Sat 7 Nov, before the rehearsal | Repo variables: `claude-sonnet-5-5`, `60`, `450`. |
+| 9 | Rehearsals | `gh workflow run` | Sat 7 Nov, by 12:00 | Spends credit. r1 on Sonnet at `60`. r2 on Haiku at `10`, to give the Monday decision a real comparison. |
+| 10 | Seed proposals | `DATABASE_URL` | Sat 7 Nov, before 18:00 | `crew/seed-proposals.ts`, at least 5, labelled as seeded. |
+| 11 | Deploy | `NEXT_PUBLIC_SITE_ORIGIN` | Sat 7 Nov, by 18:00 | First deploy, then each deploy after. |
+| 12 | Arm the nightly job | `SHIFTS_ARMED` | Sat 7 Nov, by 18:00 | Repo variable set to `true`. |
+| 13 | Second hostname (non-blocking) | `FLOORS_ORIGIN` | When ready | Added to the same Vercel project. If it is late, floors serve from the main host (section 6). |
+| 14 | Real-wallet check | none | Sat 7 Nov, after the first live floor | Open one live floor with a real wallet extension and confirm no prompt. |
+| 15 | Off-schedule shift | `gh workflow run` | Sun 8 Nov, afternoon, after the freeze | Labelled. |
+| 16 | Spare off-schedule shift | `gh workflow run` | Mon 9 Nov, start by 10:00 | Only if fewer than 3 floors are on record. Labelled. |
+| 17 | File the submission | none | Mon 9 Nov, 12:00 | The user, wallet-gated, via Step 3. |
+| 18 | Decide judging-night settings | `CREW_BUILD_MODEL`, `CREW_SHIFT_CAP_CENTS`, `CREW_TOTAL_BUDGET_CENTS` | Mon 9 Nov, by 21:00 | From real costs. Options include a $5 top-up (section 1). |
 
 ## 15. Stack, pinned
 
@@ -601,7 +681,13 @@ Chrome on this laptop: `C:\Program Files\Google\Chrome\Application\chrome.exe`. 
 | Cut order at the checkpoint | Overtime, staking half of weight, attestation to a follow-up shift | User, 2026-11-06 |
 | Crew runtime | Managed Agents in a sealed sandbox, own loop as the fallback | User, 2026-11-06 |
 | Credit | $5, the user's stated limit | User, 2026-11-06 |
-| Build model | Sonnet 5.5 for rehearsals and evidence, Haiku 5.5 for triage, review and judging nights | User, 2026-11-06 |
+| Build model | Sonnet 5.5 for rehearsal r1 and evidence, Haiku 5.5 for rehearsal r2, triage and review | User, 2026-11-06 |
+| Judging-night model | Decided on Monday from real costs, with a $5 top-up as an option | User, revision 2026-11-06 |
+| Order of human gates | Fund the key and run the probe first, so the answer lands on Fri 6 Nov | User, revision 2026-11-06 |
+| Proposal cap per shift | Dropped. Per-wallet and per-IP limits instead | User, revision 2026-11-06 |
+| Second hostname | Non-blocking. Main host under the CSP sandbox if not ready by Sat 18:00 UTC | User, revision 2026-11-06 |
+| Evidence target | 3 floors on record, meaning shipped floors, with a spare off-schedule slot on Mon morning | User, revision 2026-11-06 |
+| Fourth cut candidate | Extended static rules can go; core rules stay | User proposed, architect agreed with that exception |
 | Landing page | The tower at `/` is the landing page | User, 2026-11-06 |
 | Overtime | Cut at design, because it needs Vercel Pro | Derived from the $5 limit |
 | Host | Vercel Hobby, Neon via Marketplace, GitHub Actions | Architect, approved in design section 1 |
