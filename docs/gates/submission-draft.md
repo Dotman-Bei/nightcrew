@@ -62,7 +62,7 @@ Blank at filing. The user may add one later; the entry stays editable until the 
 
 ### Fundable result link
 
-Pending the Fundable run on the live URL, recorded in the gate ledger.
+https://fundable.vibestarter.xyz/s/WDVXwKCAB5 (68/100, PROMISING, run on the live URL Sat 7 Nov 13:58 UTC)
 
 ## Checks before filing
 
