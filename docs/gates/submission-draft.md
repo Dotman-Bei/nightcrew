@@ -16,7 +16,7 @@ An AI dev crew for token holders: sign to vote for a feature, and by morning it 
 
 ### Live app URL
 
-https://nightcrew-gray.vercel.app
+https://nightcrew.suitz.xyz
 
 ### What does it do, and what should judges try?
 

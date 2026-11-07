@@ -5,7 +5,7 @@ An AI dev crew that token holders command: sign to vote for a feature, and by mo
 
 ## Demo
 
-Live app: https://nightcrew-gray.vercel.app
+Live app: https://nightcrew.suitz.xyz
 
 ![The Night Crew tower on the live site](docs/gates/evidence/nightcrew-tower-1600x900.png)
 
