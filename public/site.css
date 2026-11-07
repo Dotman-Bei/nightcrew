@@ -1,0 +1,4 @@
+/* Page CSS for Night Crew. The kit's own files stay untouched in /taste. */
+
+/* A pane fills its section on a tablet too, where the section's height is not fixed. */
+@media (min-width: 640px) and (max-width: 1279px) { main > section > .wrap > .fill { min-height: 62svh; flex: 1 0 auto; } }
