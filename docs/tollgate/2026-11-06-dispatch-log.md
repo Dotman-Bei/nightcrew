@@ -40,4 +40,8 @@ One line per dispatch, for the routing audit. Routing is in the tollgate report.
 | floor:5 | top | claude-opus-5-5 | medium | executor-medium | worktree | done, f066b8a. Orchestrator re-ran the end-to-end test against the stricter gate: 11 of 11 |
 | votes:4 | top | claude-opus-5-5 | high | executor-high | worktree | done, 74df785 |
 | frontend:1 | standard | claude-sonnet-5-5 | medium | executor-high | worktree | done, d8b9d67. The 83 copied kit files are identical to the skill's |
+| pipeline:13 | top | claude-opus-5-5 | high | executor-high | worktree | done, 7cc482b. Committed on the user's go |
+| frontend:2 | standard | claude-sonnet-5-5 | high | executor-high | worktree | done, 9d3e27b. Six layout and wording fixes from the printed code, reviewed |
+| frontend:3 | standard | claude-sonnet-5-5 | high | executor-high | worktree | done, b09dd02. Wallet plural and CSS fixes from the printed code, reviewed |
+| frontend:4 | top | claude-opus-5-5 | high | executor-high | worktree | done, 5e20e8f. Gate passed on floors/1 and floors/3. Stage wrappers added from the printed code, reviewed |
 | launch:6 | human gate | not dispatched | low | run by the user | their shell | done. Secret OPENROUTER_API_KEY set. Variables CREW_BUILD_MODEL anthropic/claude-sonnet-5.5, CREW_SHIFT_CAP_CENTS 60, CREW_TOTAL_BUDGET_CENTS 440 and VETO_ADDRESS set. Neither fallback setting is set |
