@@ -22,7 +22,7 @@ Pulled from the kickoff, the brief and the runsheet.
 |---|---|
 | Fri 6 Nov, by 18:00 | Step 1 approved and pushed |
 | Fri 6 Nov, by 20:00 | The user's other day-1 dependencies done; Step 2 starts, pipeline first |
-| Fri 6 Nov, by 22:00 | `ANTHROPIC_API_KEY` funded and `crew/probe-runtime.ts` run, so the Managed Agents answer is in (section 5) |
+| Fri 6 Nov, by 22:00 | `OPENROUTER_API_KEY` set with a credit limit and `crew/probe-openrouter.ts` run, so the OpenRouter answer is in (section 5) |
 | Sat 7 Nov, 06:00 | Last safe moment for that answer (section 5) |
 | Sat 7 Nov, 12:00 | Checkpoint: one end-to-end rehearsal done |
 | Sat 7 Nov, 18:00 | Walking skeleton live on a public URL, nightly job armed. A missing second hostname does not hold this (section 6) |
@@ -37,29 +37,39 @@ Pulled from the kickoff, the brief and the runsheet.
 
 ### Inference budget (binding)
 
-$5 of prepaid Anthropic credit, the user's stated limit. Prices verified on 2026-11-06 per 1M tokens (input / 5-minute cache write / cache read / output): Sonnet 5.5 $2 / $2.50 / $0.10 / $10; Haiku 5.5 $0.10 / $0.125 / $0.01 / $0.50. Session runtime is $0.08 per hour.
+A $5 OpenRouter key, with a usable balance of at most about $4.70 until the probe prints the real figure. Prices read from OpenRouter on 2026-11-06 per 1M tokens (input / 5-minute cache write / cache read / output): Sonnet 5.5 $2 / $2.50 / $0.10 / $10; Haiku 5.5 $0.10 / $0.125 / $0.01 / $0.50. These are for planning only. **The runtime spends from the cost each reply reports, never from a price table.**
 
-| Work | Model | Cap per session | Estimated cost (until the first real run) |
-|---|---|---|---|
-| Runtime probe, once | `claude-haiku-5-5` | $0.05 | under $0.05 |
-| Build, rehearsal r1 and evidence shifts, including the spare | `claude-sonnet-5-5` | $0.60 | about $0.33 |
-| Build, rehearsal r2, so Monday's decision has a real Haiku cost and floor to judge | `claude-haiku-5-5` | $0.10 | about $0.04 |
-| Build, judging nights (9 to 15 Nov) | decided on Monday, below | | |
-| Triage and review, every shift | `claude-haiku-5-5` | none, single calls | about $0.01 |
+| Work | Model | Cap | Worst case, cents | Expected, cents |
+|---|---|---|---:|---:|
+| Probe, once | both | none, short calls | 2 | 1 |
+| Rehearsal r1 | `anthropic/claude-sonnet-5.5` | 60 | 90 | 35 |
+| Rehearsal r2, so Monday's decision has a real Haiku cost and floor to judge | `anthropic/claude-haiku-5.5` | 10 | 13 | 4 |
+| 3 real shifts | `anthropic/claude-sonnet-5.5` | 60 each | 270 | 105 |
+| **Required: 3 real shifts and 2 rehearsals** | | | **375** | **145** |
+| Spare shift, if needed | `anthropic/claude-sonnet-5.5` | 60 | 90 | 35 |
+| **Total with the spare** | | | **465** | **180** |
+| Build, judging nights (9 to 15 Nov) | decided on Monday, below | | | |
 
-Through filing, with the spare used, that is 5 Sonnet builds, 1 Haiku build, the probe and 6 rounds of triage and review: worst case about $3.21, estimated about $1.80. A guard stops new crew work when recorded spend reaches `CREW_TOTAL_BUDGET_CENTS` (section 8).
+**It fits, with no cut.** `CREW_SHIFT_CAP_CENTS` stays at `60` (`10` for r2). `CREW_TOTAL_BUDGET_CENTS` is the probe's printed figure: remaining credit in cents, minus 30, and never above `440`. With a usable balance of 470, that is about `438`. A guard stops new crew work when recorded spend reaches it (section 8).
+
+**What was assumed.**
+
+- *Worst case of 90 for a Sonnet shift:* the 60 cap, plus up to 28 for a last call that can only be stopped after it returns (16,000 output tokens at $10 per 1M, which is 16, plus a 60,000-token conversation with no cache hits at $2 per 1M, which is 12), plus 2 for triage and review. Prompt caching should make the real figure lower.
+- *Expected 35:* a floor of about 25 KB, about 8,000 tokens; about 2,000 thinking tokens on each writing turn at `medium` effort; up to 6 turns with one full rewrite; prompt caching on; and about 1 cent for triage and review. These are estimates until r1. `launch:7` records r1's real cost and flags the guide if it is over 70 cents, twice the expected figure, or if the build stopped at its spend cap. With a cap of 60, a shift passes 70 only through that last call, so the cap stop is the likelier signal.
+- *Why it fits under 470:* the probe spends at most 2, leaving 468, so the total is 438. The guard starts a shift only while recorded spend plus 60 is at most the total, and that shift can run 30 over. So spend ends at most at 468.
+- *The key's own credit limit* is a hard stop on top of all this, enforced by OpenRouter.
 
 #### Judging-night settings: a Monday decision
 
 The build model for the 7 judging nights is deliberately not fixed here. The user decides on Monday after filing, using the real costs from rehearsals and evidence shifts.
 
-The inputs are `remaining`, which is `CREW_TOTAL_BUDGET_CENTS` minus recorded spend, checked against the Console, and `needed`, which is 7 times the measured average cost of a Sonnet shift.
+The inputs are `remaining`, which is `CREW_TOTAL_BUDGET_CENTS` minus recorded spend, checked against real credit with `crew/probe-openrouter.ts --credit-only`, and `needed`, which is 7 times the measured average cost of a Sonnet shift.
 
 | Option | When it fits | Settings |
 |---|---|---|
-| Stay on Sonnet | `needed` is at most `remaining` | No change: `claude-sonnet-5-5`, `60` |
-| Move to Haiku | Credit is short and rehearsal r2's floor was good enough | `claude-haiku-5-5`, `10`. At most about $0.77 for 7 nights |
-| Top up $5 | Credit is short, Haiku's floor was not good enough, and the user chooses to spend it | Stay on Sonnet, and set `CREW_TOTAL_BUDGET_CENTS` to `950` |
+| Stay on Sonnet | `needed` is at most `remaining` | No change: `anthropic/claude-sonnet-5.5`, `60` |
+| Move to Haiku | Credit is short and rehearsal r2's floor was good enough | `anthropic/claude-haiku-5.5`, `10`. At most about $0.77 for 7 nights |
+| Top up | Credit is short, Haiku's floor was not good enough, and the user chooses to spend it | Stay on Sonnet, raise the key's limit, and set `CREW_TOTAL_BUDGET_CENTS` to recorded spend plus the new remaining credit in cents, minus 30 |
 
 If no decision is made by Mon 9 Nov 21:00 UTC, settings stay as they are, and the guard protects the credit: once it trips, later nights go dark with the reason "credit budget reached".
 
@@ -100,8 +110,8 @@ Vercel limits Hobby to non-commercial, personal use. That is acceptable for this
    +------------------+---------------------+---------------------+
                       |                     |
                       v                     v
-          Anthropic Managed Agents     Base: balance reads, EAS
-          sealed sandbox
+          OpenRouter, to Anthropic     Base: balance reads, EAS
+          tool loop on the runner
 ```
 
 ### Repository layout
@@ -129,7 +139,7 @@ tests/                   Vitest suites
 | Job | Secrets and variables it holds | Reads | Writes |
 |---|---|---|---|
 | `close` | `DATABASE_URL`, `BASE_RPC_URL` | database, Base, Vibestarter read API | `shift-input.json` |
-| `crew` | `ANTHROPIC_API_KEY`, `CREW_AGENT_ID`, `CREW_ENVIRONMENT_ID`, `CREW_BUILD_MODEL`, `CREW_SHIFT_CAP_CENTS` | `shift-input.json` | `crew-output/` |
+| `crew` | `OPENROUTER_API_KEY`, `CREW_BUILD_MODEL`, `CREW_SHIFT_CAP_CENTS`, optional `CREW_STRUCTURED_MODE` and `CREW_BUILD_TRANSPORT` | `shift-input.json` | `crew-output/` |
 | `verify` | nothing, `permissions: {}` | `crew-output/` | `verdict.json`, `assembled.html`, screenshots |
 | `publish` | `DATABASE_URL`, `ATTESTER_PRIVATE_KEY`, `BASE_RPC_URL`, `EAS_SCHEMA_UID`, `VETO_ADDRESS` | all artifacts | database, Base attestation |
 
@@ -153,12 +163,12 @@ tests/                   Vitest suites
 
 ### Job `crew`
 
-1. **Triage.** Single Messages API call on `claude-haiku-5-5`, no tools, structured output (section 6). It walks the ranking top-down, at most 5 proposals, and stops at the first accept. All decisions are kept. No accept means the shift goes dark.
-2. **Build.** A Managed Agents session (section 5) receives the triage brief and the floor kit. The agent writes `/mnt/session/outputs/index.html` and `/mnt/session/outputs/floor.json`, and runs the kit's check script until it passes.
-3. **Wait.** The job polls until the session is idle or terminated, with a 30-minute limit. A `requires_action` stop is answered with `deny`. A `budget_reached` stop fails the shift at stage `build`.
-4. **Collect.** Output files are downloaded with `files.list({ scope_id })`, retrying for the indexing lag. Events become the normalized transcript. `session.usage.list_cost` gives the build cost.
-5. **Review.** Single Messages API call on `claude-haiku-5-5`, no tools, structured output: `ship` or `send-back` with reasons. A `send-back` goes to the same session as one `user.message`, the job waits and collects again, and a second review runs. A second `send-back` fails the shift at stage `review`.
-6. **Output.** `crew-output/` holds `crew-result.json`, `triage.json`, `review.json`, `transcript.json`, `floor/index.html` and `floor/floor.json`.
+1. **Triage.** Single call on `anthropic/claude-haiku-5.5`, no working tools, schema-constrained output (section 6). It walks the ranking top-down, at most 5 proposals, and stops at the first accept. All decisions are kept. No accept means the shift goes dark.
+2. **Build.** The tool loop (section 5) receives the triage brief and the floor kit, on `CREW_BUILD_MODEL`. The agent writes `index.html` and `floor.json` in its temp folder, and calls `run_floor_check` until it passes.
+3. **Limits.** The loop stops at 16 turns, 300,000 tokens, the spend cap or 30 minutes. A stop at a limit fails the shift at stage `build`, unless the floor had already passed its check.
+4. **Collect.** The job reads the two files from the temp folder. The loop's events become the normalized transcript. The cost is the sum of what each reply reported.
+5. **Review.** Single call on `anthropic/claude-haiku-5.5`, no working tools, schema-constrained output: `ship` or `send-back` with reasons. A `send-back` continues the same conversation as one user message, and a second review runs. A second `send-back` fails the shift at stage `review`.
+6. **Output.** `crew-output/` holds `crew-result.json`, which carries the triage and review decisions, `transcript.json`, `floor/index.html` and `floor/floor.json`.
 
 ### Job `verify`
 
@@ -177,9 +187,9 @@ Publish is idempotent per shift, so a failed run can be re-run from its artifact
 
 ## 5. The crew runtime
 
-**Chosen by the user: Managed Agents in a sealed sandbox.** Rejected: `claude-code-action`, because its docs describe no network egress control, call secret scrubbing best-effort, and say injection risk is reduced, not eliminated.
+**Amended 2026-11-06, by the user: an OpenRouter tool loop on the GitHub runner.** The user could not fund an Anthropic API account, because the card was refused, and holds a $5 OpenRouter key instead. Managed Agents is not available on OpenRouter. This is the spec's own fallback, taken for a different reason than a failed probe. Earlier rejected: `claude-code-action`, because its docs describe no network egress control, call secret scrubbing best-effort, and say injection risk is reduced, not eliminated.
 
-**Fallback:** a Messages API loop on the GitHub runner with no shell, only `write_file`, `read_file` and `run_floor_check` tools. It is used only if the runtime probe forces it (see the decision point below). The `CrewRuntime` interface keeps the swap to one implementation file. The fallback is a plan regeneration, not pre-built code.
+The `CrewRuntime` interface stays, and the swap is one implementation file, `crew/lib/openrouter-runtime.ts`:
 
 ```ts
 interface CrewRuntime {
@@ -188,46 +198,97 @@ interface CrewRuntime {
 }
 ```
 
-### Sandbox settings
+### How the crew reaches the models
 
-- **Environment** (created once by `crew/provision.ts`): `config: { type: "cloud", networking: { type: "limited", allowed_hosts: [], allow_package_managers: false, allow_mcp_servers: false } }`.
-- **Agent** (created once): tools are `agent_toolset_20260401` with `web_fetch` and `web_search` disabled, and `permission_policy: always_allow`. The sandbox holds nothing worth protecting and has nowhere to send it, and any pause would hang an unattended shift.
-- **Session** (one per shift): `agent_with_overrides` sets `model: { id: CREW_BUILD_MODEL, effort: "medium" }`. `budget: { type: "limit", max_list_cost: { amount: CREW_SHIFT_CAP_CENTS, currency: "USD" } }`. Resources are the floor kit files only. No GitHub resource, no vault.
-- Scheduled deployments are not used, because their `initial_events` are fixed while each night's brief differs. GitHub Actions is the trigger.
+The pinned `@anthropic-ai/sdk` points at OpenRouter's Anthropic-compatible Messages endpoint: `new Anthropic({ baseURL: "https://openrouter.ai/api", apiKey: null, authToken: OPENROUTER_API_KEY })`. It is the smallest change and the strongest proof available without a key. Sonnet 5.5 has mandatory reasoning, and this endpoint returns thinking blocks natively, so sending them back unchanged is enough. It is also the setup OpenRouter documents for a Claude tool loop.
 
-The docs list the cloud sandbox as Ubuntu 24.04 with Node 22 and Playwright with Chromium at `/opt/pw-browsers/chromium`, so the agent can run the real gate offline. The runtime probe proves this.
+| Fact | Value | Source, read 2026-11-06 |
+|---|---|---|
+| Build slug | `anthropic/claude-sonnet-5.5`, $2 / $10 per 1M tokens (cache write $2.50, cache read $0.10) | [endpoints](https://openrouter.ai/api/v1/models/anthropic/claude-sonnet-5.5/endpoints) |
+| Triage and review slug | `anthropic/claude-haiku-5.5`, $0.10 / $0.50 per 1M tokens, 5 times that above 100,000 prompt tokens | [endpoints](https://openrouter.ai/api/v1/models/anthropic/claude-haiku-5.5/endpoints) |
+| Base URL and auth | `https://openrouter.ai/api`, bearer token. A call with an invalid key got a 401 from `/api/v1/messages` in Anthropic's error shape | [Claude Code guide](https://openrouter.ai/docs/guides/guides/claude-code-integration) |
+| Tool calling | `tools`, `tool_choice`, `tool_use` and `tool_result` blocks, in the `/messages` schema | [OpenAPI](https://openrouter.ai/openapi.json) |
+| Structured output | `output_config.format` with `type: json_schema`, in the `/messages` schema | [OpenAPI](https://openrouter.ai/openapi.json) |
+| A refusal | `stop_reason: refusal` on a normal reply. A moderation block or a provider-side refusal is a 403 before or instead of a reply | [OpenAPI](https://openrouter.ai/openapi.json), [errors](https://openrouter.ai/docs/api/reference/errors-and-debugging) |
+| Cost per reply | `usage.cost`, in dollars, on a non-streamed reply. **The published stream schema does not list it**, so a streamed call may have to use `GET /v1/generation?id=`, field `total_cost`, with the id from the `X-Generation-Id` header | [OpenAPI](https://openrouter.ai/openapi.json), [streaming](https://openrouter.ai/docs/api/reference/streaming) |
+| Remaining credit | `GET /v1/key`, field `limit_remaining`, which is **null unless the key has a credit limit**. `GET /v1/credits` needs a management key | [limits](https://openrouter.ai/docs/api/reference/limits), [credits](https://openrouter.ai/docs/api/api-reference/credits/get-credits) |
+| Out of credit | A 402. `metadata.limit_source` says why: `openrouter_credits`, `openrouter_key_limit` or `openrouter_in_flight_budget` | [limits](https://openrouter.ai/docs/api/reference/limits) |
 
-### The runtime probe: `crew/probe-runtime.ts`
+Three more facts shaped the design:
 
-With the user's key in the environment, it creates the environment and agent, starts one Haiku session with a 5-cent cap, and asks the agent to report as JSON: the Node version, whether Playwright launches Chromium, and whether `curl https://example.com` fails. It exits 0 only if the session ran, Chromium launched and the network is sealed. It also prints how long the session took, because a new account may start on a lower rate-limit tier.
+- **The in-flight budget.** A low-balance or new account has a cap on the estimated cost of running and recently finished requests, as a fraction of its balance, even with credit left. The estimate uses `max_tokens`, so every call sets it. `in_flight_budget_exhausted` is transient: the client waits out `Retry-After`, up to 3 times. On the Messages endpoint errors come in Anthropic's shape, which may drop OpenRouter's `metadata`, so the client also recognises this from the message and the header. `weight_exceeds_budget` means one request is too large: the build drops from 16,000 to 8,000 tokens once.
+- **Sonnet 5.5 rejects a forced `tool_choice` with a 400, and reasoning cannot be turned off.** The default effort is `high`, so the build sets `medium`. Thinking counts toward `max_tokens` and is billed as output.
+- **History must stay append-only.** Thinking blocks are bound to the system prompt, the tools and every earlier message, so none of them changes during a build.
 
-The script comes from the first two build tasks, the scaffold and the probe script, so the build does not have to reach the crew work first.
+### The loop
 
-### The fallback decision point
+- **Tools:** exactly `write_file`, `read_file` and `run_floor_check`. No shell, no network, no server tools, no plugins. A model call has no `tool_choice`.
+- **Paths:** confined to a temp folder from `mkdtemp`. A path must match a strict relative pattern, and it is resolved and checked again. Only `index.html` and `floor.json` can be written, each at most 256 KB. The kit is read-only under `kit/`. A read returns at most 24,000 characters.
+- **Routing:** every call is pinned with `provider: { only: ["anthropic"], allow_fallbacks: false }`.
+- **Model allowlist:** `CREW_BUILD_MODEL` must be one of the two exact slugs. A suffix such as `:online` would add web search, so it is refused.
+- **Limits, all checked before each call:** 16 model turns, 300,000 tokens in total, a conversation of 60,000 tokens, `CREW_SHIFT_CAP_CENTS` from real reported cost, and 30 minutes, shared by the build and its send-back. A call can pass the cap only by its own cost, at most about 28 cents on Sonnet (section 1). One call can run past the 30 minutes by at most its own 6-minute timeout, which the crew job's 50-minute limit covers. A floor that already passed its check still ships if a limit stops the closing message.
+- **`max_tokens`:** 16,000 per call. A call cut off by the limit writes nothing, and the agent is told to write a smaller file.
+- **Cost:** the runtime spends only from what each reply reports. If a reply reports no cost, the run stops rather than spend blind. Each `BuildResult` reports only what that call to the runtime spent.
+- **Never throws after spending:** a failed call returns what was already spent, with a reason in public words. No response body reaches a receipt.
+- **Retries:** only an HTTP error, which is not billed: a 429 or 5xx, up to 3 times. The SDK's own retries are off, because it would also retry a timed-out call, and OpenRouter can bill a call the client gave up on. A dropped call fails the build instead. Its cost is then missing from the record, which is why `launch:16` checks recorded spend against real credit.
+- **Prompt caching:** `cache_control: { type: "ephemeral" }` at the top level of each build call.
 
-**The decision is made when the probe runs, targeted for Fri 6 Nov by 22:00 UTC. The last safe moment is Sat 7 Nov 06:00 UTC,** which leaves time to regenerate and still rehearse by 12:00. Crew work against a fake runtime continues either way. Only the task that implements the real Managed Agents runtime waits for the answer.
+### `run_floor_check` never runs anything
+
+`crew/lib/floor-check.ts` runs the static gate, the `floor.json` schema and assembly, in-process, on the agent's text. All three only parse. It adds one check of its own: an id that a test names must appear somewhere in `index.html`, because otherwise that test can never pass.
+
+**The crew job never executes agent output and never opens a browser. The browser gate stays in the secretless verify job.** A test fails if any crew source imports Playwright, the browser gate, `child_process` or `vm`, and the workflow test fails if the crew job runs anything but `npm ci` and `crew/crew.ts`.
+
+**What this costs.** The agent can no longer run its own floor. Runtime errors and failing tests first show up in `verify`, which fails the shift with no chance to fix it. Three things reduce this: the id check above, a build prompt that tells the agent to trace each test by hand, and a review prompt that checks the same. The spare shift covers the rest. Rehearsal r1 is the first real measure of this rate. If it is high, the option is to feed verify's findings to a second crew job. That is not built, and it goes through the architect.
+
+### Two settings, so a probe finding is not a plan change
+
+Both are optional repo variables, read by the probe and the crew job. An unset value means the default, and a mistyped one stops the job.
+
+| Variable | Default | Other value | Use it when |
+|---|---|---|---|
+| `CREW_STRUCTURED_MODE` | `json-schema` | `forced-tool` | Schema output is unsupported. Triage and review make a forced tool call that nothing runs, and the existing local schema validation checks the reply. This works only because they stay on Haiku 5.5, which accepts a forced `tool_choice` |
+| `CREW_BUILD_TRANSPORT` | `non-stream` | `stream` | A long non-streamed call drops. Every build call streams, and cost comes from the stream if present, otherwise from the generation lookup |
+
+### The probe: `crew/probe-openrouter.ts`
+
+The user sets a credit limit on the key, sets `OPENROUTER_API_KEY` in the shell, and runs it. It spends under 2 cents. In order, it checks: the key and its credit, both slugs on Anthropic's own endpoint, a tool round trip on each model at the build's real `max_tokens` with thinking blocks sent back, schema output in the current mode, where a streamed call's cost comes from, and one long call on Haiku in the current transport. Every model call must report a cost.
+
+It prints `REMAINING CREDIT`, `SET CREW_TOTAL_BUDGET_CENTS TO`, `STREAMED COST COMES FROM`, and last `PROBE RESULT: <result>`. **It exits 0 only on `ok`.** `--credit-only` reads the credit and spends nothing.
+
+**`usage.cost` on a streamed reply is not confirmed.** The docs say usage arrives in `message_delta`, but the published schema for that event has no `cost` field, and no call can be made without the user's key. The probe's `STREAMED COST COMES FROM` line settles it: `response`, `lookup` or `none`. Stream mode works with `response` or `lookup`. With `none`, stream mode is unavailable, and the probe still passes if non-stream works.
+
+### The decision point
+
+**The decision is made when the probe runs, targeted for Fri 6 Nov by 22:00 UTC. The last safe moment is Sat 7 Nov 06:00 UTC.** The build does not wait for it, because `pipeline:8` is proven against a scripted OpenRouter, and the expected fallbacks are settings.
 
 | Probe result | Decision |
 |---|---|
-| Session ran, network sealed, Chromium launched | Managed Agents. The build continues as planned. |
-| Session ran, network sealed, Chromium did not launch | Stay on Managed Agents. The agent's `check.mjs` runs only the static gate in the sandbox. Browser failures then surface in `verify`, so the shift fails rather than self-repairing. |
-| API refuses access, or the network is not sealed | Fallback: the own-loop runtime above. The architect regenerates the crew runtime tasks, replacing one implementation file and its test. An unsealed network is not negotiable, because proposals are hostile text. |
-| Not run by Sat 7 Nov 06:00 UTC | The Sat 12:00 rehearsal is at risk. The guide raises it with the user, who either runs the probe at once or takes the fallback, which needs only an API key. |
-
-### Provisioning values
-
-`crew/provision.ts` prints `CREW_AGENT_ID` and `CREW_ENVIRONMENT_ID`. The user stores them as repo variables. `ant apply` is not used because the `ant` CLI is not installed; a guarded SDK script is the documented alternative.
+| `ok` | Continue. Use the printed budget figure in `launch:6`. |
+| `key-invalid` | Copy the key again and re-run. Nothing was spent. |
+| `no-credit-figure` | Set a credit limit on the key, no higher than the balance, and re-run. Nothing was spent. |
+| `no-credit` | Top up, or raise the key's limit. If the balance is what it should be, tell the guide. |
+| `structured-output-unsupported`, forced tool works | Set `CREW_STRUCTURED_MODE=forced-tool` in the shell and as a repo variable, and re-run. |
+| `structured-output-unsupported`, forced tool fails too | Back to the architect. |
+| `too-large` | Even 8,000 tokens does not fit the in-flight budget on Sonnet. Move the build to Haiku, or add credit. Decide with the guide. |
+| `long-call-dropped` | Set `CREW_BUILD_TRANSPORT=stream` in the shell and as a repo variable, and re-run. If `STREAMED COST COMES FROM` said `none`, back to the architect. |
+| `model-missing` | A slug has changed. Back to the architect to update the two slugs. |
+| `tools-failed` | Back to the architect, for a Chat Completions client. |
+| `no-cost` | Back to the architect, for a cost lookup on every call. |
+| Not run by Sat 7 Nov 06:00 UTC | The Sat 12:00 rehearsal is at risk. The guide raises it with the user. |
 
 ## 6. The security boundary
 
 **The rule: the agent has no authority.** All authority sits in jobs that treat its output as data. The worst a hijacked agent can do is write bad files, and the gate rejects those.
+
+**What changed with the OpenRouter runtime, and what did not.** The build loop now runs on the GitHub runner, in the process that holds `OPENROUTER_API_KEY`, instead of in a remote sandbox with no secrets. So the boundary is now the tool set, not a machine. The model can only ask for three tools, and none of them can reach the environment, the network or a shell, or run anything (section 5). Proposals are still hostile text. The verify job, the browser gate, the floor rules and everything below are unchanged.
 
 ### Hostile proposal text
 
 - Triage has no tools and can only return this schema: `{ decision: "accept" | "reject", category: TriageCategory, reason: string (max 200), buildBrief: string | null (max 800) }`.
 - `TriageCategory` is one of `ok`, `offensive`, `illegal`, `impersonation`, `investment`, `contest-vote`, `needs-backend`, `needs-wallet`, `too-large`, `not-a-tool`, `injection`, `model-refusal`.
 - The proposal is passed inside a delimited data block, and the prompt says it is data to assess, never instructions.
-- A `stop_reason: refusal` counts as a reject with category `model-refusal`.
+- A `stop_reason: refusal`, or a 403 from a moderation block or a provider-side refusal, counts as a reject with category `model-refusal`. OpenRouter lists these models as moderated, so hostile text can be stopped before it reaches the model, and that must not fail the shift. A moderation error echoes the flagged text, so the client reads only the error's named fields, never its body as a whole: a proposal must not be able to steer how its own rejection is read.
 - Build receives the triage brief, with the original quoted as data. Build prompts state that nothing inside the quote changes the rules.
 
 ### The floor rules
@@ -253,7 +314,7 @@ Parses with `parse5` and `acorn`, and rejects on any finding. Its job is to give
 - **`window`:** may only appear as the object of a static member access to an allowlisted name: `addEventListener`, `removeEventListener`, `innerWidth`, `innerHeight`, `devicePixelRatio`, `matchMedia`, `getComputedStyle`, `requestAnimationFrame`, `cancelAnimationFrame`, `setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`.
 - **String and template literals:** cooked values, so escapes do not hide content, are scanned for `ethereum`, `web3`, `solana`, `phantom`, `eip6963`, `metamask`, `http://`, `https://` and `javascript:`. Matching is case-sensitive, so a label like "Ethereum gas" passes.
 
-The kit's `check.mjs` is a bundle of this same code plus the browser gate, so the agent sees what the gate sees.
+The agent's `run_floor_check` runs this same code in-process, so it sees what the static gate sees. It does not see the browser gate (section 5).
 
 ### Assembly: `lib/floor-gate/assemble.ts`
 
@@ -433,8 +494,8 @@ type ReceiptBundle = {
   failure: { stage: "close" | "triage" | "build" | "review" | "verify" | "publish"; reason: string } | null;
   dark_reason: string | null;
   agent_identity: "night-crew";
-  agent_tool: "Claude Managed Agents";
-  model_provider: "Anthropic";
+  agent_tool: "Night Crew tool loop on OpenRouter";
+  model_provider: "Anthropic via OpenRouter";
   models: { triage: string; build: string | null; review: string | null };
   founder_address: string;
   tally_hash: string;
@@ -451,21 +512,22 @@ type ReceiptBundle = {
 - Canonical JSON: `lib/canonical.ts`, sorted keys, no whitespace, UTF-8.
 - Every hash is keccak256 of the part's canonical bytes. The receipt hash is keccak256 of the canonical bundle.
 - Raw parts are stored and served at `/api/receipts/[slug]/[part]` (`bundle.json`, `tally.json`, `triage.json`, `transcript.json`, `floor.html`, `diff.patch`, `tests.json`), so anyone can re-hash them.
-- `cost_cents` is the platform's `list_cost` for the build session plus triage and review priced from token usage with the price table in `lib/prices.ts`.
-- Before storing, the transcript is scanned for key-shaped strings (`sk-ant-`, 64-hex private keys). A match replaces that string with `[removed]`, and a status entry at the end of the transcript, which the receipt hashes, says how many were removed. The sandbox holds no secrets, so a match would be a defect worth seeing.
+- `cost_cents` is the sum of the cost OpenRouter reported for every call in the shift, rounded up once. There is no price table.
+- Before storing, the transcript is scanned for key-shaped strings (`sk-or-`, `sk-ant-`, 64-hex private keys). A match replaces that string with `[removed]`, and a status entry at the end of the transcript, which the receipt hashes, says how many were removed. The agent's tools can reach no secrets, so a match would be a defect worth seeing.
 - Transcript entries are truncated to 20 KB each for storage, and the truncation is marked. The hash covers what is stored.
 
 ### Attestation (**cut candidate 3**)
 
 - Schema, registered once by `crew/register-schema.ts` on `0x4200000000000000000000000000000000000020`, with no resolver and `revocable = false`:
   `bytes32 receiptHash,string shift,string outcome,bytes32 transcriptHash,bytes32 floorHash,string agentIdentity,string modelProvider,address founder,uint32 costCents`
+  The OpenRouter amendment changes no field. `modelProvider` is a free string, now `Anthropic via OpenRouter`, so the schema UID stays the same. The bundle's `agent_tool`, hashed into `receiptHash`, names the runtime.
 - Attest on `0x4200000000000000000000000000000000000021` from the wallet in `ATTESTER_PRIVATE_KEY`, using viem only. The attestation UID comes from the `Attested` event.
 - Every shift is attested, including failed and dark ones and rehearsals.
 - If attesting fails, the receipt shows "attestation pending" and the next publish retries. Cutting this to a follow-up shift means only that publish does not block on it.
 
 ### Spend guard
 
-`shifts.cost_cents` records each shift's spend, including any failed session's reported cost. `CREW_TOTAL_BUDGET_CENTS` starts at 450, which leaves 50 cents unallocated, and that margin covers the probe, which is not a shift. After a $5 top-up it becomes 950.
+`shifts.cost_cents` records each shift's spend, including what a failed build had already spent. `CREW_TOTAL_BUDGET_CENTS` starts at the probe's figure, 440 at most, for the reasons in section 1. A crash that kills the crew job would lose that shift's record, which is why `launch:16` checks recorded spend against real credit, and why the key has its own limit.
 
 ## 9. Data model
 
@@ -605,13 +667,17 @@ Pages 1, 2, 3, 5 and 6 are server-rendered, wallet-free, and use `export const r
 | No open proposals | Dark floor, reason "no proposals", no inference |
 | Every proposal tried is rejected | Dark floor, reason "no proposal passed triage" |
 | Credit guard reached | Dark floor, reason "credit budget reached", no inference |
-| Session hits its cap | Failed at stage `build`, reason "spend cap reached" |
-| Session exceeds 30 minutes, build and send-back together | Interrupted, failed at stage `build` |
-| Anthropic API error or no credit | Failed at the stage it happened |
+| Build hits its spend, token or turn limit | Failed at stage `build`, with the reason, unless the floor had already passed its check |
+| Build exceeds 30 minutes, build and send-back together | Failed at stage `build` |
+| OpenRouter error or no credit | Failed at the stage it happened, in public words with no response body |
+| In-flight budget full | The client waits out `Retry-After`, up to 3 times, then fails at the stage it happened |
+| A request too large for the in-flight budget | The build drops to 8,000 tokens once, then fails at stage `build` |
+| A reply reports no cost | Failed at the stage it happened, rather than spend blind |
+| A moderation block on a proposal | Triage rejects it with category `model-refusal`, and the next proposal is tried |
 | Output files missing | Failed at stage `build` |
 | `floor.json` malformed | Failed at stage `verify`, with the reason on the receipt |
 | Review sends back twice | Failed at stage `review` |
-| Gate rejects the floor | Failed at stage `verify`, findings shown on the receipt |
+| Gate rejects the floor, including a runtime error or failing test the agent could not see | Failed at stage `verify`, findings shown on the receipt |
 | Attestation fails, or the attester key is unusable | Shift stands, attestation pending, retried next publish |
 | Publish fails | The run is red and re-runnable from its artifacts; nothing is half-written because the writes are one transaction |
 | Base RPC fails during tally | Failed at stage `close` |
@@ -637,23 +703,22 @@ For the Sat 7 Nov 12:00 UTC checkpoint, confirmed by the user, in this order. Th
 1. **Overtime.** Already cut at design. It needs Vercel Pro at about $20 a month, which is four times the inference budget, plus a stored GitHub token on the app server. The plans carry no Overtime tasks. Consequence: a judge cannot watch the whole loop in one sitting, so transcripts and receipts carry that proof.
 2. **The staking half of vote weight.** Plan tasks are tagged. If cut, wallets holding only staked $VIBES count at minimal weight. About 82.8M was staked on 2026-11-06, out of a 1B supply.
 3. **The attestation moving to a follow-up shift.** Plan tasks are tagged. Receipts stay intact and show "attestation pending".
-4. **A trimmed static gate.** Added by the user, and the architect agrees with one exception. The extended rules (section 6) can go, because the Chrome spike ran every attack with no static gate at all and the runtime layers contained all of them except self-navigation. The core rules stay, because they are the only early defence against a floor that navigates itself on a delay too long for the browser gate's run to see. The plan builds the extended rules as their own task, so cutting them means not building it. Consequence: agent mistakes such as calling `fetch` surface as runtime errors rather than clear messages. `check.mjs` still shows them to the agent, because it also runs the browser gate.
+4. **A trimmed static gate.** Added by the user, and the architect agrees with one exception. The extended rules (section 6) can go, because the Chrome spike ran every attack with no static gate at all and the runtime layers contained all of them except self-navigation. The core rules stay, because they are the only early defence against a floor that navigates itself on a delay too long for the browser gate's run to see. The plan builds the extended rules as their own task, so cutting them means not building it. **This cut costs more since the OpenRouter amendment.** The agent no longer runs a browser, so the extended rules are its only early warning of a mistake such as calling `fetch`. Without them that mistake fails the shift in `verify`, with no chance to fix it.
 
 ## 14. Human gates
 
-Executors never run these. Each is a `human_gate: true` task. They are listed in the order they fall due, and the first two come first so the Managed Agents answer lands on Fri 6 Nov.
+Executors never run these. Each is a `human_gate: true` task. They are listed in the order they fall due, and the first two come first so the OpenRouter answer lands on Fri 6 Nov. Row 3 was removed by the OpenRouter amendment, and nothing was renumbered.
 
 | # | Gate | Names | Due (UTC) | Notes |
 |---|---|---|---|---|
-| 1 | Fund the API key | `ANTHROPIC_API_KEY` | Fri 6 Nov | $5 credit. Needed locally for gate 2, and later as a GitHub secret. |
-| 2 | Probe the runtime | `ANTHROPIC_API_KEY` | Fri 6 Nov, by 22:00 | `crew/probe-runtime.ts`, built by the first two build tasks. Its result is the fallback decision (section 5). |
-| 3 | Provision agent and environment | `CREW_AGENT_ID`, `CREW_ENVIRONMENT_ID` | Sat 7 Nov, morning | Repo variables. |
+| 1 | Set the key locally, with a credit limit | `OPENROUTER_API_KEY` | Fri 6 Nov | Set the limit in OpenRouter's key settings, no higher than the balance. Needed locally for gate 2, and later as a GitHub secret. |
+| 2 | Run the probe | `OPENROUTER_API_KEY` | Fri 6 Nov, by 22:00 | `crew/probe-openrouter.ts`, built by `foundation:7`. Its result is the decision in section 5. Gates 1 and 2 are both `foundation:3`. |
 | 4 | Vercel and Neon | `DATABASE_URL`, `RATE_LIMIT_SALT` | Sat 7 Nov, before the rehearsal | One account via the Marketplace. `DATABASE_URL` is a secret in GitHub and an env var in Vercel. `RATE_LIMIT_SALT` is a random string, an env var in Vercel. |
 | 5 | Attester key | `ATTESTER_PRIVATE_KEY` | Sat 7 Nov, before the rehearsal | GitHub secret, never in chat or the repo. The wallet is already funded. |
 | 6 | Register the EAS schema | `EAS_SCHEMA_UID` | Sat 7 Nov, before the rehearsal | Run once with the attester key. Repo variable. |
 | 7 | Your wallet address | `VETO_ADDRESS` | Sat 7 Nov, before the rehearsal | Public. Used for vetoes and as `founder_address`. |
-| 8 | Budget settings | `CREW_BUILD_MODEL`, `CREW_SHIFT_CAP_CENTS`, `CREW_TOTAL_BUDGET_CENTS` | Sat 7 Nov, before the rehearsal | Repo variables: `claude-sonnet-5-5`, `60`, `450`. |
-| 9 | Rehearsals | `gh workflow run` | Sat 7 Nov, by 12:00 | Spends credit. r1 on Sonnet at `60`. r2 on Haiku at `10`, to give the Monday decision a real comparison. |
+| 8 | Budget settings | `OPENROUTER_API_KEY`, `CREW_BUILD_MODEL`, `CREW_SHIFT_CAP_CENTS`, `CREW_TOTAL_BUDGET_CENTS` | Sat 7 Nov, before the rehearsal | The key is a GitHub secret. Repo variables: `anthropic/claude-sonnet-5.5`, `60`, and the probe's figure, about 438. Plus `CREW_STRUCTURED_MODE` or `CREW_BUILD_TRANSPORT` only if the probe asked. |
+| 9 | Rehearsals | `gh workflow run` | Sat 7 Nov, by 12:00 | Spends credit. r1 on Sonnet at `60`. r2 on Haiku at `10`, to give the Monday decision a real comparison. Records r1's real cost in `docs/gates/rehearsal-costs.md`, and flags the guide if it is over 70 cents or the build stopped at its spend cap. |
 | 10 | Seed proposals | `DATABASE_URL` | Sat 7 Nov, before 18:00 | `crew/seed-proposals.ts`, at least 5, labelled as seeded. |
 | 11 | Deploy | `NEXT_PUBLIC_SITE_ORIGIN` | Sat 7 Nov, by 18:00 | First deploy, then each deploy after. |
 | 12 | Arm the nightly job | `SHIFTS_ARMED` | Sat 7 Nov, by 18:00 | Repo variable set to `true`. |
@@ -662,7 +727,7 @@ Executors never run these. Each is a `human_gate: true` task. They are listed in
 | 15 | Off-schedule shift | `gh workflow run` | Sun 8 Nov, afternoon, after the freeze | Labelled. |
 | 16 | Spare off-schedule shift | `gh workflow run` | Mon 9 Nov, start by 10:00 | Only if fewer than 3 floors are on record. Labelled. |
 | 17 | File the submission | none | Mon 9 Nov, 12:00 | The user, wallet-gated, via Step 3. |
-| 18 | Decide judging-night settings | `CREW_BUILD_MODEL`, `CREW_SHIFT_CAP_CENTS`, `CREW_TOTAL_BUDGET_CENTS` | Mon 9 Nov, by 21:00 | From real costs. Options include a $5 top-up (section 1). |
+| 18 | Decide judging-night settings | `CREW_BUILD_MODEL`, `CREW_SHIFT_CAP_CENTS`, `CREW_TOTAL_BUDGET_CENTS` | Mon 9 Nov, by 21:00 | From real costs. Options include a top-up (section 1). |
 
 ## 15. Stack, pinned
 
@@ -677,12 +742,11 @@ Versions read from npm on 2026-11-06.
 | `wagmi` | 3.7.11 |
 | `@tanstack/react-query` | 5.106.1 |
 | `@coinbase/wallet-sdk` | 4.3.7 |
-| `@anthropic-ai/sdk` | 1.6.0 |
+| `@anthropic-ai/sdk` | 1.6.0, pointed at OpenRouter |
 | `@neondatabase/serverless` | 1.2.0 |
 | `@electric-sql/pglite` | 0.5.15 |
 | `vitest` | 5.1.0 |
 | `tsx` | 4.23.15 |
-| `esbuild` | 0.28.2 |
 | `acorn` | 8.19.0 |
 | `acorn-walk` | 8.3.5 |
 | `parse5` | 8.1.0 |
@@ -702,6 +766,8 @@ All non-UI code and all seven pages were built in a throwaway reference build on
 - Proposals ranked by weight as text, so 52,000 sorted above 509,010. Ranking is now numeric, with a test.
 - The plan review found 13 routes from floor code to the real window, in the guard and the wrapper. Section 6 lists the fixes, and each route is now in the hostile set.
 
+The OpenRouter amendment was built the same way. Its client, loop and probe ran against the real SDK with a scripted OpenRouter, because no key was available to the architect. **No call to OpenRouter's models has run yet.** The probe is the first.
+
 This does not replace Step 2. The orchestrator still builds every task from the plans and proves every gate.
 
 ## 17. Design decisions
@@ -709,11 +775,14 @@ This does not replace Step 2. The orchestrator still builds every task from the 
 | Question | Answer | Source |
 |---|---|---|
 | Cut order at the checkpoint | Overtime, staking half of weight, attestation to a follow-up shift, then a trimmed static gate | User, 2026-11-06, extended in the revision |
-| Crew runtime | Managed Agents in a sealed sandbox, own loop as the fallback | User, 2026-11-06 |
-| Credit | $5, the user's stated limit | User, 2026-11-06 |
+| Crew runtime | OpenRouter tool loop on the runner, because no Anthropic account could be funded. Replaces Managed Agents in a sealed sandbox | User, amendment 2026-11-06 |
+| OpenRouter endpoint | The Messages endpoint through the pinned SDK, not Chat Completions | Architect, approved in the amendment delta |
+| Fallback settings | `CREW_STRUCTURED_MODE` and `CREW_BUILD_TRANSPORT`, so a probe finding is a config change | User, amendment 2026-11-06 |
+| r1 cost check | `launch:7` records it and flags the guide over 70 cents | User, amendment 2026-11-06 |
+| Credit | A $5 OpenRouter key, usable balance at most about $4.70 | User, amendment 2026-11-06 |
 | Build model | Sonnet 5.5 for rehearsal r1 and evidence, Haiku 5.5 for rehearsal r2, triage and review | User, 2026-11-06 |
 | Judging-night model | Decided on Monday from real costs, with a $5 top-up as an option | User, revision 2026-11-06 |
-| Order of human gates | Fund the key and run the probe first, so the answer lands on Fri 6 Nov | User, revision 2026-11-06 |
+| Order of human gates | Set the key and run the probe first, so the answer lands on Fri 6 Nov | User, revision 2026-11-06 |
 | Proposal cap per shift | Dropped. Per-wallet and per-IP limits instead | User, revision 2026-11-06 |
 | Second hostname | Non-blocking. Main host under the CSP sandbox if not ready by Sat 18:00 UTC | User, revision 2026-11-06 |
 | Evidence target | 3 floors on record, meaning shipped floors, with a spare off-schedule slot on Mon morning | User, revision 2026-11-06 |

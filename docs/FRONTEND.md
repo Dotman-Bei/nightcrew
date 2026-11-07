@@ -137,7 +137,7 @@ All copy below is final. Words in `{braces}` come from the database, and the cod
 
 - H2: "How a shift works"
 - Line: "Three agents and two checks, every night at 22:00 UTC. No human touches the code, and a failed shift is published like a passed one."
-- Picture: the kit's `timeline` diagram: Triage "Rejects anything unsafe, in public" → Build "Sealed sandbox, no network, no secrets" → Review "Can send it back once" → Verify "Real Chrome, a fake wallet, no secrets" → Publish "Floor, receipt and attestation on Base"
+- Picture: the kit's `timeline` diagram: Triage "Rejects anything unsafe, in public" → Build "Three tools, no shell, no network" → Review "Can send it back once" → Verify "Real Chrome, a fake wallet, no secrets" → Publish "Floor, receipt and attestation on Base"
 
 **The whole tower (`#tower`).** The skill's `app-frame`.
 
@@ -201,7 +201,7 @@ One screen and the footer. This is the money shot.
 
 **`#security`.** H2 "What a floor cannot do". Line: "Floors are AI-written code running next to your wallet. So the agent has no authority, and each floor is locked down." Rows:
 
-- "The agent holds nothing": "It works in a sealed sandbox with no network, no secrets and no repo. The worst it can do is write a bad file."
+- "The agent holds nothing": "It has three tools: write a file, read a file, run the static check. It has no shell, no network and no secrets, and nothing runs its code in the job that holds the key. The worst it can do is write a bad file."
 - "A separate machine checks the floor": "A machine with no secrets runs it in real Chrome against a fake wallet. Any touch fails the shift."
 - "The browser locks the floor down": one of the two lines below, from `FLOORS_ORIGIN`.
 - "Nothing runs until you open it": "The tower shows pictures of floors and runs no floor code. The vote page embeds no floors."

@@ -1,11 +1,13 @@
 # Foundation Implementation Plan
 
-**Goal:** Scaffold the project, prove the crew runtime on the user's account tonight, and lay down hashing, the database and shift claiming.
-**Architecture:** A Next.js 16 app in TypeScript strict. Postgres through one small query interface: Neon over HTTP in production, in-process PGlite in tests and local pages, so no Docker is needed. The runtime probe comes second in the whole build, so the Managed Agents answer lands on Fri 6 Nov.
+**Goal:** Scaffold the project, prove the OpenRouter crew runtime on the user's key tonight, and lay down hashing, the database and shift claiming.
+**Architecture:** A Next.js 16 app in TypeScript strict. Postgres through one small query interface: Neon over HTTP in production, in-process PGlite in tests and local pages, so no Docker is needed. The OpenRouter probe comes early, so its answer lands on Fri 6 Nov.
 **Tech Stack:** next 16.4.5, react 19.3.1, typescript 7.0.2, vitest 5.1.0, tsx 4.23.15, zod 4.6.7, viem 2.57.16, @anthropic-ai/sdk 1.6.0, @neondatabase/serverless 1.2.0, @electric-sql/pglite 0.5.15
 **Source spec:** docs/superpowers/specs/2026-11-06-nightcrew-design.md
 
 Task references use `<plan>:<task>`, across all six plans, in build order: `foundation`, `floor`, `pipeline`, `votes`, `frontend`, `launch`. The code here passed each task's gate in a reference build on 2026-11-06. Tasks marked as cut candidates can be skipped at the Sat 7 Nov 12:00 UTC checkpoint, through the architect, never by hand. Gates need the installed dependencies: a fresh worktree runs `npm ci` first, with a real `node_modules` folder and never a link to another one.
+
+**Amended 2026-11-06: the crew runs on OpenRouter, not Managed Agents.** Tasks already built keep their original text, so some still name Managed Agents: `foundation:7`, `pipeline:14` and `pipeline:15` amend them. Tasks not yet built were edited in place, and every task id is unchanged.
 
 ---
 ### Task 1: Scaffold the project
@@ -462,50 +464,50 @@ Message: `feat: add the Managed Agents runtime probe and sealed sandbox settings
 
 ---
 
-### Task 3: Fund the key and run the probe
+### Task 3: Set the OpenRouter key and run the probe
 
 **Files:**
 (none: this task changes no files)
 
-**Depends on:** Task foundation:2
+**Depends on:** Task foundation:7
 **Effort:** low
 **Model tier:** top
-**Provides:** `Human result: PROBE RESULT line from crew/probe-runtime.ts, which decides the crew runtime`
-**Requires:** `crew/lib/probe.ts: decideProbe(report: ProbeReport | null, failure?: string | null): ProbeVerdict`
+**Provides:** `Human result: PROBE RESULT line from crew/probe-openrouter.ts, with the remaining credit and the budget to set`
+**Requires:** `crew/lib/probe.ts: runProbe(deps: ProbeDeps): Promise<ProbeReport>; readCredit(client): Promise<Credit>; suggestedTotal(remainingDollars): number; crew/probe-openrouter.ts: prints PROBE RESULT, exits 0 only on ok`
 
 **HUMAN GATE: the user runs this. An executor never does. It uses a key, spends money or deploys.**
 
 Upstream interfaces this task uses, exactly as their tasks provide them:
 
 ```text
-crew/lib/probe.ts: decideProbe(report: ProbeReport | null, failure?: string | null): ProbeVerdict
+crew/lib/probe.ts: runProbe(deps: ProbeDeps): Promise<ProbeReport>; readCredit(client): Promise<Credit>; suggestedTotal(remainingDollars): number; crew/probe-openrouter.ts: prints PROBE RESULT, exits 0 only on ok
 ```
 
 - [ ] **Step 1: Do this yourself**
 
-Create an Anthropic API key at platform.claude.com and add $5 of prepaid credit. A Claude Pro seat is not an API key.
+In OpenRouter's key settings, set a credit limit on the key, no higher than the balance on your Credits page. Without a limit OpenRouter does not report what remains, and the probe stops. The limit is also a hard stop: OpenRouter refuses requests past it.
 
 - [ ] **Step 2: Do this yourself**
 
-Set it in your shell only, never in a file or a chat. Do not type it on a command line, because PowerShell keeps that line in a history file. This prompts and hides what you paste: `$env:ANTHROPIC_API_KEY = [System.Net.NetworkCredential]::new('', (Read-Host 'ANTHROPIC_API_KEY' -AsSecureString)).Password`.
+Set the key in your shell only, never in a file or a chat. Do not type it on a command line, because PowerShell keeps that line in a history file. This prompts and hides what you paste: `$env:OPENROUTER_API_KEY = [System.Net.NetworkCredential]::new('', (Read-Host 'OPENROUTER_API_KEY' -AsSecureString)).Password`.
 
 - [ ] **Step 3: Do this yourself**
 
-The next step runs the probe. It starts one Haiku session capped at 5 cents, so run it once. The target is Fri 6 Nov by 22:00 UTC, and the last safe moment is Sat 7 Nov 06:00 UTC.
+The next step runs the probe. It spends under 2 cents and takes a few minutes, because it makes one long call on purpose. Each run spends again, so run it only when something has changed. The target is Fri 6 Nov by 22:00 UTC, and the last safe moment is Sat 7 Nov 06:00 UTC.
 
 - [ ] **Step 4: Prove it**
 
-Run: `npx tsx crew/probe-runtime.ts`
-Expected: PROBE RESULT: managed-agents
+Run: `npx tsx crew/probe-openrouter.ts`
+Expected: PROBE RESULT: ok
 
 - [ ] **Step 5: Act on the result**
 
-Apply the decision table in the spec, section 5. `managed-agents` continues the build as planned. `managed-agents-no-chromium` stays on Managed Agents, and the agent's check runs static rules only. `fallback` stops `pipeline:8`: route it to the architect to regenerate the runtime as the own-loop fallback. Tell the orchestrator the result either way.
+Apply the decision table in the spec, section 5. Write down the lines `REMAINING CREDIT`, `SET CREW_TOTAL_BUDGET_CENTS TO` and `STREAMED COST COMES FROM`: `launch:6` uses the budget figure. If the probe told you to set `CREW_STRUCTURED_MODE` or `CREW_BUILD_TRANSPORT`, set it in your shell, run the probe again, and keep the value for `launch:6`. Then clear the key: `Remove-Item Env:OPENROUTER_API_KEY`. Tell the orchestrator the result either way.
 
 - [ ] **Step 6: Commit (kernel-performed — no agent runs this)**
 
 The orchestrator re-runs the gate, scope-checks the worktree against `Files:`, and commits exactly those paths. Executors never touch git.
-Message: `chore: record the runtime probe result`
+Message: `chore: record the OpenRouter probe result`
 
 ---
 
@@ -1261,3 +1263,494 @@ Expected: Test Files  1 passed (1)
 
 The orchestrator re-runs the gate, scope-checks the worktree against `Files:`, and commits exactly those paths. Executors never touch git.
 Message: `feat: add shift claiming, the open shift and proposal inserts`
+
+---
+
+### Task 7: Amendment: the OpenRouter probe
+
+**Files:**
+- Create: `crew/probe-openrouter.ts`
+- Modify: `crew/lib/probe.ts`
+- Modify: `.env.example`
+- Modify: `tests/deploy-config.test.ts`
+- Modify: `crew/probe-runtime.ts`
+- Modify: `crew/lib/provisioning.ts`
+- Test:   `tests/probe.test.ts`
+
+**Depends on:** Task foundation:2, Task pipeline:14, Task launch:1
+**Effort:** high
+**Model tier:** top
+**Provides:** `crew/lib/probe.ts: runProbe(deps: ProbeDeps): Promise<ProbeReport>; readCredit(client): Promise<Credit>; suggestedTotal(remainingDollars): number; crew/probe-openrouter.ts: prints PROBE RESULT, exits 0 only on ok`
+**Requires:** `crew/lib/openrouter.ts: OPENROUTER_BASE_URL, SONNET_SLUG, HAIKU_SLUG, BUILD_MAX_TOKENS, BUILD_MIN_MAX_TOKENS, PINNED_PROVIDER; openRouterClient(apiKey, options?): Anthropic; assertAllowedModel(model): string; parseTransport(value): Transport; classifyFailure(error): ProviderFailure; sendMessage(client, body, options?): Promise<SentMessage>; type OpenRouterBody, Transport, SentMessage, ProviderFailure; class ProviderError`, `crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; StructuredMode; openRouterStructuredModel(client, mode?): StructuredModel; parseStructuredMode(value): StructuredMode`, `tests/helpers/fake-openrouter.ts: fakeOpenRouter(script); messageReply, textBlock, toolBlock, thinkingBlock, streamReply, streamToolReply; type FakeReply, FakeRequest`
+
+This replaces the Managed Agents probe from `foundation:2`. It exits 0 only if the key is valid, both slugs resolve, a tool round trip works on both models, schema output works, cost is reported, and the remaining credit is printed. The test scripts every failure through the real SDK. Do not run `crew/probe-openrouter.ts`: it spends money, and `foundation:3` is the user's.
+
+Upstream interfaces this task uses, exactly as their tasks provide them:
+
+```text
+crew/lib/openrouter.ts: OPENROUTER_BASE_URL, SONNET_SLUG, HAIKU_SLUG, BUILD_MAX_TOKENS, BUILD_MIN_MAX_TOKENS, PINNED_PROVIDER; openRouterClient(apiKey, options?): Anthropic; assertAllowedModel(model): string; parseTransport(value): Transport; classifyFailure(error): ProviderFailure; sendMessage(client, body, options?): Promise<SentMessage>; type OpenRouterBody, Transport, SentMessage, ProviderFailure; class ProviderError
+crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; StructuredMode; openRouterStructuredModel(client, mode?): StructuredModel; parseStructuredMode(value): StructuredMode
+tests/helpers/fake-openrouter.ts: fakeOpenRouter(script); messageReply, textBlock, toolBlock, thinkingBlock, streamReply, streamToolReply; type FakeReply, FakeRequest
+```
+
+- [ ] **Step 1: Write the failing test**
+
+`tests/probe.test.ts`:
+
+```ts
+import { describe, expect, it } from "vitest";
+import { openRouterClient, BUILD_MAX_TOKENS, BUILD_MIN_MAX_TOKENS, type Transport } from "@/crew/lib/openrouter";
+import { runProbe, suggestedTotal, type ProbeResult } from "@/crew/lib/probe";
+import { fakeOpenRouter, messageReply, streamReply, streamToolReply, textBlock, thinkingBlock, toolBlock, type FakeReply, type FakeRequest } from "./helpers/fake-openrouter";
+
+type World = {
+  key?: FakeReply;
+  endpoints?: FakeReply;
+  /** Replaces the reply to a model call. Return undefined for the normal reply. */
+  call?: (request: FakeRequest) => FakeReply | undefined;
+  noCost?: boolean;
+};
+
+const KEY: FakeReply = { body: { data: { limit: 4.7, limit_remaining: 4.7, usage: 0, is_free_tier: false } } };
+const ENDPOINTS: FakeReply = { body: { data: { endpoints: [{ tag: "anthropic", supported_parameters: ["tools", "tool_choice"], pricing: { prompt: "0.000002", completion: "0.00001" } }] } } };
+
+/** A working OpenRouter, unless the world says otherwise. */
+function world({ key = KEY, endpoints = ENDPOINTS, call, noCost }: World = {}) {
+  const cost = noCost ? null : 0.001;
+  return fakeOpenRouter((request) => {
+    if (request.url.endsWith("/v1/key")) return key;
+    if (request.url.includes("/endpoints")) return endpoints;
+    if (request.url.includes("/v1/generation")) return { body: { data: { total_cost: 0.001 } } };
+    const replaced = call?.(request);
+    if (replaced) return replaced;
+    const body = request.body as { stream?: boolean; messages: { content: unknown }[]; tools?: { name: string }[]; output_config?: { format?: unknown }; tool_choice?: unknown };
+    if (body.stream && body.tools) return body.messages.length === 1 ? streamToolReply("read_nonce", {}, "toolu_1", null) : streamReply("NC-7319", null);
+    if (body.stream) return streamReply("ok", null);
+    if (body.tools?.[0]?.name === "read_nonce") {
+      return body.messages.length === 1 ? messageReply([thinkingBlock(), toolBlock("read_nonce", {})], { cost }) : messageReply([textBlock("NC-7319")], { cost });
+    }
+    if (body.tools?.[0]?.name === "answer") return messageReply([toolBlock("answer", { decision: "accept", note: null })], { cost });
+    if (body.output_config?.format) return messageReply([textBlock('{"decision":"accept","note":null}')], { cost });
+    return messageReply([textBlock("1\n2\n3")], { cost, stop: "max_tokens", outputTokens: 16000 });
+  });
+}
+
+async function probe(options: World = {}, settings: { mode?: "json-schema" | "forced-tool"; transport?: Transport } = {}) {
+  const fake = world(options);
+  const lines: string[] = [];
+  const report = await runProbe({
+    client: openRouterClient("sk-or-test", { fetch: fake.fetch }),
+    mode: settings.mode ?? "json-schema",
+    transport: settings.transport ?? "non-stream",
+    log: (line) => lines.push(line),
+  });
+  return { report, lines, requests: fake.requests };
+}
+
+const modelCalls = (requests: FakeRequest[]) => requests.filter((request) => request.url.endsWith("/v1/messages"));
+const expectResult = (result: ProbeResult, actual: ProbeResult) => expect(actual).toBe(result);
+
+describe("the OpenRouter probe", () => {
+  it("passes when everything works, and prints the credit and the budget to set", async () => {
+    const { report } = await probe();
+    expect(report.result).toBe("ok");
+    expect(report.remaining).toBe(4.7);
+    expect(report.suggestedTotalCents).toBe(440);
+    expect(report.spentCents).toBeGreaterThan(0);
+  });
+  it("tries both models at the build's real token limit, through Anthropic only", async () => {
+    const { requests } = await probe();
+    const tools = modelCalls(requests).filter((request) => (request.body.tools as { name: string }[] | undefined)?.[0]?.name === "read_nonce");
+    expect(tools.map((request) => request.body.model)).toEqual(["anthropic/claude-sonnet-5.5", "anthropic/claude-sonnet-5.5", "anthropic/claude-haiku-5.5", "anthropic/claude-haiku-5.5"]);
+    for (const request of tools) {
+      expect(request.body.max_tokens).toBe(BUILD_MAX_TOKENS);
+      expect(request.body.provider).toEqual({ only: ["anthropic"], allow_fallbacks: false });
+    }
+  });
+  it("sends thinking blocks back unchanged on the second turn", async () => {
+    const { requests } = await probe();
+    const second = modelCalls(requests)[1].body.messages as { role: string; content: { type: string; signature?: string }[] }[];
+    expect(second[1].content[0]).toEqual({ type: "thinking", thinking: "", signature: "sig-1" });
+  });
+  it("reports where a streamed call's cost comes from", async () => {
+    expect((await probe()).report.streamCost).toBe("lookup");
+    const inline = await probe({ call: (request) => (request.body.stream ? streamReply("ok", 0.001) : undefined) });
+    expect(inline.report.streamCost).toBe("response");
+    const none = await probe({ call: (request) => (request.body.stream && !request.body.tools ? { status: 400, body: {} } : undefined) });
+    expect(none.report.streamCost).toBe("none");
+    expect(none.report.result).toBe("ok");
+  });
+  it("fails on a bad key", async () => {
+    expectResult("key-invalid", (await probe({ key: { status: 401, body: { error: { message: "User not found." } } } })).report.result);
+  });
+  it("fails when the key has no credit limit, because nothing then reports what remains", async () => {
+    const { report } = await probe({ key: { body: { data: { limit: null, limit_remaining: null, usage: 0, is_free_tier: false } } } });
+    expectResult("no-credit-figure", report.result);
+    expect(report.detail).toContain("Set a limit on the key");
+  });
+  it("fails when a slug does not resolve or Anthropic does not serve it", async () => {
+    expectResult("model-missing", (await probe({ endpoints: { status: 404, body: {} } })).report.result);
+    expectResult("model-missing", (await probe({ endpoints: { body: { data: { endpoints: [{ tag: "azure", supported_parameters: ["tools"] }] } } } })).report.result);
+  });
+  it("fails when the model will not use the tool", async () => {
+    expectResult("tools-failed", (await probe({ call: (request) => ((request.body.tools as { name: string }[] | undefined)?.[0]?.name === "read_nonce" ? messageReply([textBlock("no")]) : undefined) })).report.result);
+  });
+  it("fails when no cost is reported", async () => {
+    expectResult("no-cost", (await probe({ noCost: true })).report.result);
+  });
+  it("fails with no credit", async () => {
+    expectResult("no-credit", (await probe({ call: () => ({ status: 402, body: { error: { message: "m", metadata: { limit_source: "openrouter_key_limit" } } } }) })).report.result);
+  });
+  it("drops to the build's smaller token limit if the larger will not fit the in-flight budget", async () => {
+    const tooLarge = { status: 402, body: { error: { message: "m", metadata: { reason: "weight_exceeds_budget" } } } };
+    const fits = await probe({ call: (request) => (request.body.max_tokens === BUILD_MAX_TOKENS && (request.body.tools as unknown[] | undefined) ? tooLarge : undefined) });
+    expect(fits.report.result).toBe("ok");
+    expect(modelCalls(fits.requests).some((request) => request.body.max_tokens === BUILD_MIN_MAX_TOKENS)).toBe(true);
+    expectResult("too-large", (await probe({ call: () => tooLarge })).report.result);
+  });
+  it("says to use a forced tool when schema output fails but that works", async () => {
+    const failing = { call: (request: FakeRequest) => ((request.body.output_config as { format?: unknown } | undefined)?.format ? messageReply([textBlock("prose")]) : undefined) };
+    const { report } = await probe(failing);
+    expectResult("structured-output-unsupported", report.result);
+    expect(report.detail).toContain("forced-tool");
+    expect((await probe(failing, { mode: "forced-tool" })).report.result).toBe("ok");
+  });
+  it("says to stream when a long non-streamed call drops", async () => {
+    const dropped = { call: (request: FakeRequest) => (!request.body.stream && !request.body.tools && !(request.body.output_config as { format?: unknown }).format ? { status: 400, body: {} } : undefined) };
+    const { report } = await probe(dropped);
+    expectResult("long-call-dropped", report.result);
+    expect(report.detail).toContain("CREW_BUILD_TRANSPORT");
+    expect((await probe(dropped, { transport: "stream" })).report.result).toBe("ok");
+  });
+  it("refuses to pass in stream mode if a stream reports no cost by either route", async () => {
+    expectResult("no-cost", (await probe({ call: (request) => (request.body.stream && !request.body.tools ? { status: 400, body: {} } : undefined) }, { transport: "stream" })).report.result);
+  });
+  it("suggests a total that leaves the margin, and never above the plan", () => {
+    expect(suggestedTotal(4.7)).toBe(440);
+    expect(suggestedTotal(4.68)).toBe(438);
+    expect(suggestedTotal(4.5)).toBe(420);
+    expect(suggestedTotal(9.2)).toBe(440);
+  });
+});
+```
+
+- [ ] **Step 2: Run to confirm it fails**
+
+Run: `npx vitest run tests/probe.test.ts tests/deploy-config.test.ts`
+Expected: FAIL: runProbe is not exported from "@/crew/lib/probe"
+
+- [ ] **Step 3: Minimal implementation**
+
+`crew/lib/probe.ts`:
+
+```ts
+import type Anthropic from "@anthropic-ai/sdk";
+import type { MessageParam, Tool } from "@anthropic-ai/sdk/resources/messages/messages";
+import { openRouterStructuredModel, type StructuredMode } from "@/crew/lib/model";
+import { BUILD_MAX_TOKENS, BUILD_MIN_MAX_TOKENS, classifyFailure, HAIKU_SLUG, PINNED_PROVIDER, sendMessage, SONNET_SLUG, type OpenRouterBody, type Transport } from "@/crew/lib/openrouter";
+
+/** CREW_TOTAL_BUDGET_CENTS never goes above this until a top-up. */
+export const PLANNED_TOTAL_CENTS = 440;
+/** Keeps the last allowed shift, which can pass its cap by one call, inside the real balance. */
+const BUDGET_MARGIN_CENTS = 30;
+const NONCE = "NC-7319";
+const SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["decision", "note"],
+  properties: { decision: { type: "string", enum: ["accept", "reject"] }, note: { type: ["string", "null"] } },
+};
+
+export type ProbeResult = "ok" | "key-invalid" | "no-credit-figure" | "no-credit" | "too-large" | "model-missing" | "tools-failed" | "structured-output-unsupported" | "no-cost" | "long-call-dropped";
+export type StreamCost = "response" | "lookup" | "none";
+
+export type Credit = { limit: number | null; remaining: number | null; used: number; freeTier: boolean };
+
+export type ProbeReport = {
+  result: ProbeResult;
+  detail: string;
+  remaining: number | null;
+  suggestedTotalCents: number | null;
+  streamCost: StreamCost | null;
+  spentCents: number;
+};
+
+export type ProbeDeps = {
+  client: Anthropic;
+  mode: StructuredMode;
+  transport: Transport;
+  log?: (line: string) => void;
+};
+
+/** Reads what a normal key can see of its own credit. Spends nothing. */
+export async function readCredit(client: Anthropic): Promise<Credit> {
+  const { data } = await client.get<{ data: { limit: number | null; limit_remaining: number | null; usage: number; is_free_tier: boolean } }>("/v1/key");
+  return { limit: data.limit, remaining: data.limit_remaining, used: data.usage, freeTier: data.is_free_tier };
+}
+
+export function suggestedTotal(remainingDollars: number): number {
+  return Math.min(PLANNED_TOTAL_CENTS, Math.floor(remainingDollars * 100) - BUDGET_MARGIN_CENTS);
+}
+
+class ProbeStop extends Error {
+  constructor(readonly result: ProbeResult, detail: string) {
+    super(detail);
+  }
+}
+
+function stopFor(error: unknown, otherwise: ProbeResult): ProbeStop {
+  if (error instanceof ProbeStop) return error;
+  const failure = classifyFailure(error);
+  if (failure.reason.includes("no cost")) return new ProbeStop("no-cost", failure.reason);
+  if (failure.kind === "no-credit") return new ProbeStop("no-credit", failure.reason);
+  if (failure.kind === "too-large" || failure.kind === "in-flight") return new ProbeStop("too-large", failure.reason);
+  return new ProbeStop(otherwise, failure.reason);
+}
+
+async function checkModel(client: Anthropic, slug: string): Promise<string> {
+  let endpoints: { tag?: string; supported_parameters?: string[]; pricing?: { prompt?: string; completion?: string } }[];
+  try {
+    const found = await client.get<{ data?: { endpoints?: typeof endpoints } }>(`/v1/models/${slug}/endpoints`);
+    endpoints = found.data?.endpoints ?? [];
+  } catch {
+    throw new ProbeStop("model-missing", `${slug} did not resolve.`);
+  }
+  const anthropic = endpoints.find((endpoint) => endpoint.tag === "anthropic");
+  if (!anthropic) throw new ProbeStop("model-missing", `${slug} has no endpoint from Anthropic itself.`);
+  const params = anthropic.supported_parameters ?? [];
+  if (!params.includes("tools")) throw new ProbeStop("model-missing", `${slug} does not list tools on Anthropic's endpoint.`);
+  const perMillion = (value: string | undefined) => (Number(value ?? 0) * 1_000_000).toFixed(2);
+  return `$${perMillion(anthropic.pricing?.prompt)}/M in, $${perMillion(anthropic.pricing?.completion)}/M out`;
+}
+
+const PROBE_TOOL: Tool = {
+  name: "read_nonce",
+  description: "Returns a short code. Call it once.",
+  input_schema: { type: "object", additionalProperties: false, properties: {} },
+};
+
+/** A real tool round trip, at the build's token limit, sending any thinking blocks back unchanged. */
+async function toolRoundTrip(client: Anthropic, model: string, transport: Transport, maxTokens: number): Promise<number> {
+  const messages: MessageParam[] = [{ role: "user", content: "Call read_nonce once, then reply with only the code it returned." }];
+  const body = (): OpenRouterBody => ({ model, max_tokens: maxTokens, messages, tools: [PROBE_TOOL], output_config: { effort: "low" }, provider: PINNED_PROVIDER });
+  const first = await sendMessage(client, body(), { transport });
+  const use = first.message.content.find((block) => block.type === "tool_use");
+  if (use?.type !== "tool_use") throw new ProbeStop("tools-failed", `${model} did not call the tool.`);
+  messages.push({ role: "assistant", content: first.message.content as MessageParam["content"] });
+  messages.push({ role: "user", content: [{ type: "tool_result", tool_use_id: use.id, content: NONCE }] });
+  const second = await sendMessage(client, body(), { transport });
+  const text = second.message.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join("");
+  if (!text.includes(NONCE)) throw new ProbeStop("tools-failed", `${model} did not use the tool's result.`);
+  return first.costCents + second.costCents;
+}
+
+async function schemaWorks(client: Anthropic, mode: StructuredMode): Promise<{ works: boolean; costCents: number }> {
+  try {
+    const model = openRouterStructuredModel(client, mode);
+    const reply = await model({ model: HAIKU_SLUG, system: "Answer in the required shape.", user: 'Decide "accept", with a null note.', schema: SCHEMA, maxTokens: 500 });
+    const value = reply.value as { decision?: unknown; note?: unknown } | null;
+    return { works: value?.decision === "accept" && value.note === null, costCents: reply.costCents };
+  } catch (error) {
+    const stop = stopFor(error, "structured-output-unsupported");
+    if (stop.result !== "structured-output-unsupported") throw stop;
+    return { works: false, costCents: 0 };
+  }
+}
+
+/** The one long call the probe makes: on Haiku, because it costs under a cent there. */
+async function longCall(client: Anthropic, transport: Transport): Promise<{ seconds: number; costCents: number; tokens: number }> {
+  const started = Date.now();
+  const { message, costCents } = await sendMessage(
+    client,
+    { model: HAIKU_SLUG, max_tokens: BUILD_MAX_TOKENS, messages: [{ role: "user", content: "Write every whole number from 1 to 6000, one per line, and nothing else." }], output_config: { effort: "low" }, provider: PINNED_PROVIDER },
+    { transport },
+  );
+  return { seconds: Math.round((Date.now() - started) / 1000), costCents, tokens: message.usage.output_tokens };
+}
+
+/** Is usage.cost on a streamed reply? Only a live call can answer: the published schema leaves it out. */
+async function streamCost(client: Anthropic): Promise<{ source: StreamCost; costCents: number }> {
+  try {
+    const { costSource, costCents } = await sendMessage(client, { model: HAIKU_SLUG, max_tokens: 50, messages: [{ role: "user", content: "Reply with the word ok." }], output_config: { effort: "low" }, provider: PINNED_PROVIDER }, { transport: "stream" });
+    return { source: costSource, costCents };
+  } catch {
+    return { source: "none", costCents: 0 };
+  }
+}
+
+/** Runs every check in order and stops at the first that decides the result. See the spec, section 5. */
+export async function runProbe({ client, mode, transport, log = console.log }: ProbeDeps): Promise<ProbeReport> {
+  const report: ProbeReport = { result: "ok", detail: "All checks passed.", remaining: null, suggestedTotalCents: null, streamCost: null, spentCents: 0 };
+  try {
+    let credit: Credit;
+    try {
+      credit = await readCredit(client);
+    } catch {
+      throw new ProbeStop("key-invalid", "OpenRouter refused the key.");
+    }
+    log(`key: limit ${credit.limit ?? "none"}, remaining ${credit.remaining ?? "unknown"}, used ${credit.used}`);
+    if (credit.remaining === null) throw new ProbeStop("no-credit-figure", "This key has no credit limit, so OpenRouter does not report what remains. Set a limit on the key, no higher than your balance.");
+
+    for (const slug of [SONNET_SLUG, HAIKU_SLUG]) log(`model ${slug}: ${await checkModel(client, slug)}`);
+
+    for (const slug of [SONNET_SLUG, HAIKU_SLUG]) {
+      try {
+        let cost: number;
+        try {
+          cost = await toolRoundTrip(client, slug, transport, BUILD_MAX_TOKENS);
+        } catch (error) {
+          if (classifyFailure(error).kind !== "too-large") throw error;
+          log(`${slug} is too large for the in-flight budget at ${BUILD_MAX_TOKENS} tokens, so trying ${BUILD_MIN_MAX_TOKENS}, which the build drops to by itself.`);
+          cost = await toolRoundTrip(client, slug, transport, BUILD_MIN_MAX_TOKENS);
+        }
+        report.spentCents += cost;
+        log(`tools on ${slug}: round trip ok, ${cost.toFixed(3)} cents`);
+      } catch (error) {
+        throw stopFor(error, "tools-failed");
+      }
+    }
+
+    const schema = await schemaWorks(client, mode);
+    report.spentCents += schema.costCents;
+    if (!schema.works) {
+      const other = mode === "json-schema" ? await schemaWorks(client, "forced-tool") : { works: false, costCents: 0 };
+      report.spentCents += other.costCents;
+      throw new ProbeStop("structured-output-unsupported", other.works ? "Schema output failed, but a forced tool call works. Set CREW_STRUCTURED_MODE to forced-tool in your shell and as a repo variable, and run this again." : "Neither schema output nor a forced tool call worked.");
+    }
+    log(`schema output: ok in ${mode} mode, ${schema.costCents.toFixed(3)} cents`);
+
+    const stream = await streamCost(client);
+    report.spentCents += stream.costCents;
+    report.streamCost = stream.source;
+    log(`streamed cost: ${stream.source}`);
+    if (transport === "stream" && stream.source === "none") throw new ProbeStop("no-cost", "A streamed call reported no cost by either route, so the build cannot stream.");
+
+    try {
+      const long = await longCall(client, transport);
+      report.spentCents += long.costCents;
+      log(`long call on ${transport}: ${long.tokens} tokens in ${long.seconds} seconds, ${long.costCents.toFixed(3)} cents`);
+    } catch (error) {
+      const stop = stopFor(error, "long-call-dropped");
+      if (stop.result !== "long-call-dropped") throw stop;
+      throw new ProbeStop("long-call-dropped", transport === "non-stream" ? "A long non-streamed call failed. Set CREW_BUILD_TRANSPORT to stream in your shell and as a repo variable, and run this again." : "A long streamed call failed too.");
+    }
+
+    const after = await readCredit(client);
+    report.remaining = after.remaining;
+    report.suggestedTotalCents = after.remaining === null ? null : suggestedTotal(after.remaining);
+  } catch (error) {
+    const stop = error instanceof ProbeStop ? error : stopFor(error, "tools-failed");
+    report.result = stop.result;
+    report.detail = stop.message;
+  }
+  return report;
+}
+```
+
+`crew/probe-openrouter.ts`:
+
+```ts
+import { parseStructuredMode } from "@/crew/lib/model";
+import { openRouterClient, parseTransport } from "@/crew/lib/openrouter";
+import { readCredit, runProbe } from "@/crew/lib/probe";
+
+const key = process.env.OPENROUTER_API_KEY?.trim();
+if (!key) {
+  console.log("OPENROUTER_API_KEY is not set");
+  console.log("PROBE RESULT: key-invalid");
+  process.exit(1);
+}
+const client = openRouterClient(key);
+
+// Spends nothing. Reads the key's remaining credit, for the Monday decision or after a top-up.
+if (process.argv.includes("--credit-only")) {
+  const credit = await readCredit(client);
+  console.log(`REMAINING CREDIT: ${credit.remaining === null ? "unknown: this key has no credit limit" : `$${credit.remaining.toFixed(2)}`}`);
+  console.log(`USED BY THIS KEY: $${credit.used.toFixed(2)}`);
+  process.exit(0);
+}
+
+const report = await runProbe({
+  client,
+  mode: parseStructuredMode(process.env.CREW_STRUCTURED_MODE),
+  transport: parseTransport(process.env.CREW_BUILD_TRANSPORT),
+});
+
+console.log(report.detail);
+console.log(`PROBE SPENT: ${report.spentCents.toFixed(3)} cents`);
+if (report.remaining !== null) console.log(`REMAINING CREDIT: $${report.remaining.toFixed(2)}`);
+if (report.suggestedTotalCents !== null) console.log(`SET CREW_TOTAL_BUDGET_CENTS TO: ${report.suggestedTotalCents}`);
+if (report.streamCost !== null) console.log(`STREAMED COST COMES FROM: ${report.streamCost}`);
+console.log(`PROBE RESULT: ${report.result}`);
+process.exit(report.result === "ok" ? 0 : 1);
+```
+
+`.env.example`:
+
+```text
+# Names only. Values live in GitHub, Vercel or your shell, never in this repo.
+
+# Shift pipeline (GitHub Actions)
+OPENROUTER_API_KEY=
+ATTESTER_PRIVATE_KEY=
+DATABASE_URL=
+BASE_RPC_URL=
+CREW_BUILD_MODEL=
+CREW_BUILD_TRANSPORT=
+CREW_STRUCTURED_MODE=
+CREW_SHIFT_CAP_CENTS=
+CREW_TOTAL_BUDGET_CENTS=
+EAS_SCHEMA_UID=
+SHIFTS_ARMED=
+VETO_ADDRESS=
+
+# App (Vercel)
+NEXT_PUBLIC_SITE_ORIGIN=
+FLOORS_ORIGIN=
+RATE_LIMIT_SALT=
+
+# Local tests
+CHROME_PATH=
+```
+
+`tests/deploy-config.test.ts`:
+
+```ts
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+describe("the deploy config", () => {
+  const vercel = JSON.parse(readFileSync("vercel.json", "utf8")) as { buildCommand: string; framework: string };
+  it("migrates the database before each build", () => {
+    expect(vercel.framework).toBe("nextjs");
+    expect(vercel.buildCommand).toBe("npx tsx db/migrate.ts && next build");
+  });
+  it("keeps secrets and local state out of git", () => {
+    const ignore = readFileSync(".gitignore", "utf8");
+    for (const entry of [".env", ".next/", "node_modules/", "shift-work/", ".taste-skill/"]) expect(ignore).toContain(entry);
+  });
+  it("lists every env var by name only", () => {
+    const example = readFileSync(".env.example", "utf8");
+    for (const name of ["OPENROUTER_API_KEY", "ATTESTER_PRIVATE_KEY", "DATABASE_URL", "FLOORS_ORIGIN", "RATE_LIMIT_SALT", "VETO_ADDRESS"]) expect(example).toContain(`${name}=\n`);
+    expect(example).not.toContain("ANTHROPIC_API_KEY");
+    expect(example).not.toMatch(/=\S/);
+  });
+});
+```
+
+- [ ] **Step 4: Delete what this replaces**
+
+Delete these files, which nothing uses after this task:
+
+- `crew/probe-runtime.ts`
+- `crew/lib/provisioning.ts`
+
+- [ ] **Step 5: Run to confirm it passes**
+
+Run: `npx vitest run tests/probe.test.ts tests/deploy-config.test.ts`
+Expected: Test Files  2 passed (2)
+
+- [ ] **Step 6: Commit (kernel-performed — no agent runs this)**
+
+The orchestrator re-runs the gate, scope-checks the worktree against `Files:`, and commits exactly those paths. Executors never touch git.
+Message: `feat: replace the runtime probe with the OpenRouter probe`

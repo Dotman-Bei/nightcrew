@@ -87,10 +87,10 @@
     {
       "id": "foundation:3",
       "subsystem": "foundation",
-      "title": "Fund the key and run the probe",
+      "title": "Set the OpenRouter key and run the probe",
       "plan": "docs/superpowers/plans/2026-11-06-foundation.md",
       "depends_on": [
-        "foundation:2"
+        "foundation:7"
       ],
       "effort": "low",
       "model_tier": "top",
@@ -100,16 +100,16 @@
         "test": []
       },
       "provides": [
-        "Human result: PROBE RESULT line from crew/probe-runtime.ts, which decides the crew runtime"
+        "Human result: PROBE RESULT line from crew/probe-openrouter.ts, with the remaining credit and the budget to set"
       ],
       "requires": [
-        "crew/lib/probe.ts: decideProbe(report: ProbeReport | null, failure?: string | null): ProbeVerdict"
+        "crew/lib/probe.ts: runProbe(deps: ProbeDeps): Promise<ProbeReport>; readCredit(client): Promise<Credit>; suggestedTotal(remainingDollars): number; crew/probe-openrouter.ts: prints PROBE RESULT, exits 0 only on ok"
       ],
       "gate": {
-        "run": "npx tsx crew/probe-runtime.ts",
-        "expect": "PROBE RESULT: managed-agents"
+        "run": "npx tsx crew/probe-openrouter.ts",
+        "expect": "PROBE RESULT: ok"
       },
-      "commit": "chore: record the runtime probe result",
+      "commit": "chore: record the OpenRouter probe result",
       "human_gate": true,
       "gate_profile": "secret",
       "allow_empty": true,
@@ -223,6 +223,50 @@
         "expect": "Test Files  1 passed (1)"
       },
       "commit": "feat: add shift claiming, the open shift and proposal inserts",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "foundation:7",
+      "subsystem": "foundation",
+      "title": "Amendment: the OpenRouter probe",
+      "plan": "docs/superpowers/plans/2026-11-06-foundation.md",
+      "depends_on": [
+        "foundation:2",
+        "pipeline:14",
+        "launch:1"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "crew/probe-openrouter.ts"
+        ],
+        "modify": [
+          "crew/lib/probe.ts",
+          ".env.example",
+          "tests/deploy-config.test.ts",
+          "crew/probe-runtime.ts",
+          "crew/lib/provisioning.ts"
+        ],
+        "test": [
+          "tests/probe.test.ts"
+        ]
+      },
+      "provides": [
+        "crew/lib/probe.ts: runProbe(deps: ProbeDeps): Promise<ProbeReport>; readCredit(client): Promise<Credit>; suggestedTotal(remainingDollars): number; crew/probe-openrouter.ts: prints PROBE RESULT, exits 0 only on ok"
+      ],
+      "requires": [
+        "crew/lib/openrouter.ts: OPENROUTER_BASE_URL, SONNET_SLUG, HAIKU_SLUG, BUILD_MAX_TOKENS, BUILD_MIN_MAX_TOKENS, PINNED_PROVIDER; openRouterClient(apiKey, options?): Anthropic; assertAllowedModel(model): string; parseTransport(value): Transport; classifyFailure(error): ProviderFailure; sendMessage(client, body, options?): Promise<SentMessage>; type OpenRouterBody, Transport, SentMessage, ProviderFailure; class ProviderError",
+        "crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; StructuredMode; openRouterStructuredModel(client, mode?): StructuredModel; parseStructuredMode(value): StructuredMode",
+        "tests/helpers/fake-openrouter.ts: fakeOpenRouter(script); messageReply, textBlock, toolBlock, thinkingBlock, streamReply, streamToolReply; type FakeReply, FakeRequest"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/probe.test.ts tests/deploy-config.test.ts",
+        "expect": "Test Files  2 passed (2)"
+      },
+      "commit": "feat: replace the runtime probe with the OpenRouter probe",
       "human_gate": false,
       "allow_empty": false,
       "status": "pending"
@@ -433,25 +477,21 @@
       "files": {
         "create": [
           "floor-kit/template.html",
-          "floor-kit/RULES.md",
-          "floor-kit/check-entry.ts",
-          "scripts/build-floor-kit.mjs"
+          "floor-kit/RULES.md"
         ],
-        "modify": [],
+        "modify": [
+          "package.json"
+        ],
         "test": [
           "tests/floor-kit.test.ts"
         ]
       },
       "provides": [
-        "floor-kit/template.html, floor-kit/RULES.md, floor-kit/check-entry.ts, scripts/build-floor-kit.mjs: builds floor-kit/dist/check.mjs"
+        "floor-kit/template.html, floor-kit/RULES.md: what the build agent receives"
       ],
       "requires": [
         "lib/floor-gate/static.ts: runStaticGate(html: string): Finding[]; runCoreGate(html: string): Finding[]",
-        "lib/floor-gate/browser.ts: runBrowserGate(options: BrowserGateOptions): Promise<BrowserGateResult>; gatePassed(result): boolean; fakeProviderScript(mode); type ProviderMode",
-        "lib/floor-gate/floor-spec.ts: FloorSpec, FloorStep, FloorTest (zod schemas and types)",
-        "lib/floor-gate/assemble.ts: assembleFloor(rawHtml: string, snapshotJson: string | null): AssembledFloor; wrapFloorScript(code): string",
-        "tests/fixtures/good-floor/index.html and floor.json: a floor that passes every gate",
-        "tests/helpers/chrome.ts: chromePath(): string; launchChrome(): Promise<Browser>"
+        "package.json: pinned stack, tsconfig.json with the @/ alias, vitest.config.ts"
       ],
       "gate": {
         "run": "npx vitest run tests/floor-kit.test.ts",
@@ -766,11 +806,12 @@
     {
       "id": "pipeline:8",
       "subsystem": "pipeline",
-      "title": "Managed Agents runtime",
+      "title": "OpenRouter tool loop runtime",
       "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
       "depends_on": [
         "pipeline:7",
-        "foundation:3",
+        "pipeline:14",
+        "pipeline:15",
         "floor:6"
       ],
       "effort": "high",
@@ -778,33 +819,39 @@
       "files": {
         "create": [
           "crew/prompts/build.md",
-          "crew/lib/managed-agents-runtime.ts",
-          "crew/provision.ts",
+          "crew/lib/floor-check.ts",
+          "crew/lib/openrouter-runtime.ts",
           "crew/crew.ts"
         ],
         "modify": [],
         "test": [
-          "tests/managed-agents-runtime.test.ts"
+          "tests/openrouter-runtime.test.ts"
         ]
       },
       "provides": [
-        "crew/lib/managed-agents-runtime.ts: class ManagedAgentsRuntime implements CrewRuntime"
+        "crew/lib/openrouter-runtime.ts: class OpenRouterRuntime implements CrewRuntime; CREW_TOOLS; confine(root, requested): string | null; crew/lib/floor-check.ts: checkFloor(html, floorJson): FloorCheck; checkReport(check): string; crew/crew.ts"
       ],
       "requires": [
         "crew/lib/runtime.ts: interface CrewRuntime { build(input); sendBack(sessionId, reasons) }; BuildInput; BuildResult; KitFile; buildPrompt(input); sendBackPrompt(reasons)",
         "crew/lib/transcript.ts: normaliseEvents(events: RawEvent[]): TranscriptEntry[]; scrubTranscript(entries); type RawEvent",
-        "crew/lib/provisioning.ts: createCrewResources(client: Anthropic, name: string, model: string): Promise<CrewResources>",
         "crew/lib/contracts.ts: ShiftInput, CrewResult, Verdict, Transcript, TranscriptEntry, TriageDecision, TriageCategory, ReviewDecision, Failure (zod schemas and types)",
         "crew/lib/crew-shift.ts: crewShift(deps: CrewDeps): Promise<CrewOutput>",
-        "crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; anthropicStructuredModel(client?): StructuredModel",
+        "crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; StructuredMode; openRouterStructuredModel(client, mode?): StructuredModel; parseStructuredMode(value): StructuredMode",
+        "crew/lib/openrouter.ts: OPENROUTER_BASE_URL, SONNET_SLUG, HAIKU_SLUG, BUILD_MAX_TOKENS, BUILD_MIN_MAX_TOKENS, PINNED_PROVIDER; openRouterClient(apiKey, options?): Anthropic; assertAllowedModel(model): string; parseTransport(value): Transport; classifyFailure(error): ProviderFailure; sendMessage(client, body, options?): Promise<SentMessage>; type OpenRouterBody, Transport, SentMessage, ProviderFailure; class ProviderError",
+        "tests/helpers/fake-openrouter.ts: fakeOpenRouter(script); messageReply, textBlock, toolBlock, thinkingBlock, streamReply, streamToolReply; type FakeReply, FakeRequest",
         "crew/lib/work-dir.ts: workPath(...parts); writeWork(path, content); readWork(path); setOutput(name, value)",
-        "Human result: PROBE RESULT line from crew/probe-runtime.ts, which decides the crew runtime"
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()",
+        "lib/floor-gate/static.ts: runStaticGate(html: string): Finding[]; runCoreGate(html: string): Finding[]",
+        "lib/floor-gate/floor-spec.ts: FloorSpec, FloorStep, FloorTest (zod schemas and types)",
+        "lib/floor-gate/assemble.ts: assembleFloor(rawHtml: string, snapshotJson: string | null): AssembledFloor; wrapFloorScript(code): string",
+        "tests/fixtures/good-floor/index.html and floor.json: a floor that passes every gate",
+        "floor-kit/template.html, floor-kit/RULES.md: what the build agent receives"
       ],
       "gate": {
-        "run": "npx vitest run tests/managed-agents-runtime.test.ts",
+        "run": "npx vitest run tests/openrouter-runtime.test.ts",
         "expect": "Test Files  1 passed (1)"
       },
-      "commit": "feat: run the build agent in a sealed Managed Agents sandbox",
+      "commit": "feat: run the build agent in a tool loop with no authority",
       "human_gate": false,
       "allow_empty": false,
       "status": "pending"
@@ -930,7 +977,9 @@
         "pipeline:9",
         "pipeline:10",
         "pipeline:11",
-        "foundation:6"
+        "foundation:6",
+        "pipeline:14",
+        "pipeline:15"
       ],
       "effort": "xhigh",
       "model_tier": "top",
@@ -949,6 +998,7 @@
       ],
       "requires": [
         "lib/receipt.ts: buildReceipt(fields, parts): BuiltReceipt; type ReceiptBundle, ReceiptOutcome, ReceiptFailure",
+        "Receipts name OpenRouter, transcripts scrub sk-or- keys, send-backs name the loop's tools, and review checks that tests trace",
         "lib/eas.ts: RECEIPT_SCHEMA; receiptSchemaUid(); encodeAttestationData(fields); viemAttester(privateKey, schemaUid, rpcUrl?): Attester; attesterFromEnv(env, rpcUrl?): Attester | null; normaliseKey(raw): Hex; type Attester",
         "crew/lib/contracts.ts: ShiftInput, CrewResult, Verdict, Transcript, TranscriptEntry, TriageDecision, TriageCategory, ReviewDecision, Failure (zod schemas and types)",
         "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
@@ -962,7 +1012,8 @@
         "crew/lib/verify-floor.ts: verifyFloor(rawHtml, floorJsonText, snapshotJson, launch): Promise<VerifyOutput>",
         "lib/proposals.ts: normaliseProposal(text): string; insertProposal(db, proposal: InsertProposal): Promise<number>",
         "crew/lib/runtime.ts: interface CrewRuntime { build(input); sendBack(sessionId, reasons) }; BuildInput; BuildResult; KitFile; buildPrompt(input); sendBackPrompt(reasons)",
-        "crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; anthropicStructuredModel(client?): StructuredModel",
+        "crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; StructuredMode; openRouterStructuredModel(client, mode?): StructuredModel; parseStructuredMode(value): StructuredMode",
+        "crew/lib/triage.ts: CREW_SUPPORT_MODEL; triageProposal(model, proposalId, text): Promise<TriageOutcome>; triageUserMessage(text)",
         "crew/lib/work-dir.ts: workPath(...parts); writeWork(path, content); readWork(path); setOutput(name, value)",
         "tests/helpers/chrome.ts: chromePath(): string; launchChrome(): Promise<Browser>",
         "tests/fixtures/good-floor/index.html and floor.json: a floor that passes every gate"
@@ -1015,6 +1066,99 @@
         "expect": "Test Files  1 passed (1)"
       },
       "commit": "feat: add the shift workflow with one secret set per job",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:14",
+      "subsystem": "pipeline",
+      "title": "Amendment: the OpenRouter client and structured model",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "pipeline:7"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [
+          "crew/lib/openrouter.ts",
+          "tests/helpers/fake-openrouter.ts"
+        ],
+        "modify": [
+          "crew/lib/model.ts",
+          "crew/lib/triage.ts",
+          "tests/triage.test.ts",
+          "tests/crew-shift.test.ts",
+          "lib/prices.ts"
+        ],
+        "test": [
+          "tests/openrouter.test.ts"
+        ]
+      },
+      "provides": [
+        "crew/lib/openrouter.ts: OPENROUTER_BASE_URL, SONNET_SLUG, HAIKU_SLUG, BUILD_MAX_TOKENS, BUILD_MIN_MAX_TOKENS, PINNED_PROVIDER; openRouterClient(apiKey, options?): Anthropic; assertAllowedModel(model): string; parseTransport(value): Transport; classifyFailure(error): ProviderFailure; sendMessage(client, body, options?): Promise<SentMessage>; type OpenRouterBody, Transport, SentMessage, ProviderFailure; class ProviderError",
+        "crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; StructuredMode; openRouterStructuredModel(client, mode?): StructuredModel; parseStructuredMode(value): StructuredMode",
+        "tests/helpers/fake-openrouter.ts: fakeOpenRouter(script); messageReply, textBlock, toolBlock, thinkingBlock, streamReply, streamToolReply; type FakeReply, FakeRequest"
+      ],
+      "requires": [
+        "crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; anthropicStructuredModel(client?): StructuredModel",
+        "crew/lib/triage.ts: CREW_SUPPORT_MODEL; triageProposal(model, proposalId, text): Promise<TriageOutcome>; triageUserMessage(text)",
+        "crew/lib/crew-shift.ts: crewShift(deps: CrewDeps): Promise<CrewOutput>",
+        "crew/lib/runtime.ts: interface CrewRuntime { build(input); sendBack(sessionId, reasons) }; BuildInput; BuildResult; KitFile; buildPrompt(input); sendBackPrompt(reasons)",
+        "crew/lib/contracts.ts: ShiftInput, CrewResult, Verdict, Transcript, TranscriptEntry, TriageDecision, TriageCategory, ReviewDecision, Failure (zod schemas and types)"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/openrouter.test.ts tests/triage.test.ts tests/crew-shift.test.ts",
+        "expect": "Test Files  3 passed (3)"
+      },
+      "commit": "feat: call OpenRouter, priced from the cost it reports",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "pipeline:15",
+      "subsystem": "pipeline",
+      "title": "Amendment: receipts and transcripts name what actually runs",
+      "plan": "docs/superpowers/plans/2026-11-06-pipeline.md",
+      "depends_on": [
+        "pipeline:14",
+        "pipeline:10"
+      ],
+      "effort": "medium",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [
+          "lib/receipt.ts",
+          "crew/lib/transcript.ts",
+          "crew/lib/runtime.ts",
+          "crew/prompts/review.md",
+          "tests/review-transcript.test.ts"
+        ],
+        "test": [
+          "tests/receipt.test.ts"
+        ]
+      },
+      "provides": [
+        "Receipts name OpenRouter, transcripts scrub sk-or- keys, send-backs name the loop's tools, and review checks that tests trace"
+      ],
+      "requires": [
+        "lib/receipt.ts: buildReceipt(fields, parts): BuiltReceipt; type ReceiptBundle, ReceiptOutcome, ReceiptFailure",
+        "lib/canonical.ts: canonicalJson(value: unknown): string",
+        "lib/hash.ts: keccakText(text: string): Hex; cspScriptHash(script: string): string; sha256Hex(text: string): string",
+        "crew/lib/transcript.ts: normaliseEvents(events: RawEvent[]): TranscriptEntry[]; scrubTranscript(entries); type RawEvent",
+        "crew/lib/contracts.ts: ShiftInput, CrewResult, Verdict, Transcript, TranscriptEntry, TriageDecision, TriageCategory, ReviewDecision, Failure (zod schemas and types)",
+        "crew/lib/runtime.ts: interface CrewRuntime { build(input); sendBack(sessionId, reasons) }; BuildInput; BuildResult; KitFile; buildPrompt(input); sendBackPrompt(reasons)",
+        "crew/lib/review.ts: reviewFloor(model, brief, html, floorJson): Promise<ReviewOutcome>",
+        "crew/lib/model.ts: type StructuredModel; StructuredCall; StructuredResult; JsonSchema; StructuredMode; openRouterStructuredModel(client, mode?): StructuredModel; parseStructuredMode(value): StructuredMode"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/receipt.test.ts tests/review-transcript.test.ts",
+        "expect": "Test Files  2 passed (2)"
+      },
+      "commit": "feat: name OpenRouter on receipts and scrub its keys from transcripts",
       "human_gate": false,
       "allow_empty": false,
       "status": "pending"
@@ -1310,7 +1454,7 @@
         "crew/lib/verify-floor.ts: verifyFloor(rawHtml, floorJsonText, snapshotJson, launch): Promise<VerifyOutput>",
         "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()",
         "tests/fixtures/good-floor/index.html and floor.json: a floor that passes every gate",
-        "floor-kit/template.html, floor-kit/RULES.md, floor-kit/check-entry.ts, scripts/build-floor-kit.mjs: builds floor-kit/dist/check.mjs"
+        "floor-kit/template.html, floor-kit/RULES.md: what the build agent receives"
       ],
       "gate": {
         "run": "npx vitest run tests/dev-seed.test.ts",
@@ -1617,7 +1761,7 @@
         "app/rejected/page.tsx",
         "app/veto/page.tsx",
         "lib/messages.ts: proposalMessage(input); voteMessage(input); vetoMessage(input); isFresh(signedAt, now)",
-        "floor-kit/template.html, floor-kit/RULES.md, floor-kit/check-entry.ts, scripts/build-floor-kit.mjs: builds floor-kit/dist/check.mjs"
+        "floor-kit/template.html, floor-kit/RULES.md: what the build agent receives"
       ],
       "gate": {
         "run": "npx vitest run tests/copy.test.ts",
@@ -1694,39 +1838,6 @@
       "status": "pending"
     },
     {
-      "id": "launch:3",
-      "subsystem": "launch",
-      "title": "Provision the crew's agent and environment",
-      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
-      "depends_on": [
-        "foundation:3",
-        "pipeline:8"
-      ],
-      "effort": "low",
-      "model_tier": "top",
-      "files": {
-        "create": [],
-        "modify": [],
-        "test": []
-      },
-      "provides": [
-        "Human result: repo variables CREW_AGENT_ID and CREW_ENVIRONMENT_ID"
-      ],
-      "requires": [
-        "Human result: PROBE RESULT line from crew/probe-runtime.ts, which decides the crew runtime",
-        "crew/lib/managed-agents-runtime.ts: class ManagedAgentsRuntime implements CrewRuntime"
-      ],
-      "gate": {
-        "run": "gh variable list",
-        "expect": "CREW_ENVIRONMENT_ID"
-      },
-      "commit": "chore: provision the crew's agent and environment",
-      "human_gate": true,
-      "gate_profile": "secret",
-      "allow_empty": true,
-      "status": "pending"
-    },
-    {
       "id": "launch:4",
       "subsystem": "launch",
       "title": "Create Vercel and Neon",
@@ -1794,7 +1905,7 @@
       "title": "Set the budget and shift settings",
       "plan": "docs/superpowers/plans/2026-11-06-launch.md",
       "depends_on": [
-        "launch:3"
+        "foundation:3"
       ],
       "effort": "low",
       "model_tier": "top",
@@ -1804,10 +1915,10 @@
         "test": []
       },
       "provides": [
-        "Human result: repo variables CREW_BUILD_MODEL, CREW_SHIFT_CAP_CENTS, CREW_TOTAL_BUDGET_CENTS, VETO_ADDRESS, and secret ANTHROPIC_API_KEY"
+        "Human result: repo variables CREW_BUILD_MODEL, CREW_SHIFT_CAP_CENTS, CREW_TOTAL_BUDGET_CENTS, VETO_ADDRESS, and secret OPENROUTER_API_KEY"
       ],
       "requires": [
-        "Human result: repo variables CREW_AGENT_ID and CREW_ENVIRONMENT_ID"
+        "Human result: PROBE RESULT line from crew/probe-openrouter.ts, with the remaining credit and the budget to set"
       ],
       "gate": {
         "run": "gh variable list",
@@ -1833,7 +1944,9 @@
       "effort": "low",
       "model_tier": "top",
       "files": {
-        "create": [],
+        "create": [
+          "docs/gates/rehearsal-costs.md"
+        ],
         "modify": [],
         "test": []
       },
@@ -1844,13 +1957,13 @@
         ".github/workflows/shift.yml: close, crew, verify and publish jobs",
         "Human result: DATABASE_URL in GitHub and Vercel, migrations applied",
         "Human result: secret ATTESTER_PRIVATE_KEY and repo variable EAS_SCHEMA_UID",
-        "Human result: repo variables CREW_BUILD_MODEL, CREW_SHIFT_CAP_CENTS, CREW_TOTAL_BUDGET_CENTS, VETO_ADDRESS, and secret ANTHROPIC_API_KEY"
+        "Human result: repo variables CREW_BUILD_MODEL, CREW_SHIFT_CAP_CENTS, CREW_TOTAL_BUDGET_CENTS, VETO_ADDRESS, and secret OPENROUTER_API_KEY"
       ],
       "gate": {
-        "run": "gh run list --workflow shift.yml --limit 2 --json conclusion --jq .[].conclusion",
-        "expect": "success"
+        "run": "node -e \"const t=require('fs').readFileSync('docs/gates/rehearsal-costs.md','utf8').replace(/[^\\x20-\\x7e\\n]/g,'');const l=(t.match(/^r1 .*/m)||[''])[0];const c=l.match(/(\\d+) cents/);if(!c){console.log('R1 COST MISSING');process.exit(1)}console.log('R1 COST RECORDED: '+c[1]+' cents');if(+c[1]>70||/spend cap/.test(l))console.log('OVER BUDGET: TELL THE GUIDE NOW')\"",
+        "expect": "R1 COST RECORDED"
       },
-      "commit": "chore: run the rehearsals",
+      "commit": "chore: run the rehearsals and record their real cost",
       "human_gate": true,
       "gate_profile": "secret",
       "allow_empty": true,
@@ -2132,7 +2245,7 @@
       ],
       "gate": {
         "run": "gh variable get CREW_BUILD_MODEL",
-        "expect": "claude-"
+        "expect": "anthropic/claude-"
       },
       "commit": "chore: set the judging-night model",
       "human_gate": true,

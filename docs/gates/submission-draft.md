@@ -34,9 +34,9 @@ Floors on record at filing: TBD-post-build:count of floors on record (shipped fl
 
 Built with Claude Code, by Claude agents working from a written spec one tested task at a time: an architect on Claude Opus 5.5 wrote the spec, plans and task manifest, and an orchestrator dispatched a fresh subagent per task and proved each task's gate before committing it. The spec, plans and manifest are in the repo.
 
-Claude agents also run the product's own nightly shifts. Triage and review run on Claude Haiku 5.5. The build agent runs on Claude Managed Agents, in a sealed sandbox with no network, no secrets and a hard spend cap, on TBD-post-build:build model used for the evidence shifts (planned: Claude Sonnet 5.5). Every shift publishes its own transcript and cost.
+Claude agents also run the product's own nightly shifts, reached through OpenRouter. Triage and review run on Claude Haiku 5.5 with no working tools. The build agent runs on TBD-post-build:build model used for the evidence shifts (planned: Claude Sonnet 5.5), in a small tool loop in a GitHub Actions job. It has three tools: write one of two named files in a temp folder, read a file in that folder, and run the static check. It has no shell and no network, and it stops at hard limits on turns, tokens, spend and time. That job holds the OpenRouter key, so its boundary is the tool set: no tool can reach the key, and nothing in that job runs what the agent writes. A separate job with no secrets then runs the floor in real Chrome against a fake wallet. Every shift publishes its own transcript and its cost as OpenRouter reported it.
 
-Stack: Next.js, TypeScript, Postgres (Neon), viem and wagmi on Base, EAS attestations, Playwright with Chrome, GitHub Actions, Vercel. Frontend built with the design-taste-frontend skill.
+Stack: Next.js, TypeScript, Postgres (Neon), viem and wagmi on Base, EAS attestations, Claude through OpenRouter, Playwright with Chrome, GitHub Actions, Vercel. Frontend built with the design-taste-frontend skill.
 
 ## Optional fields
 
