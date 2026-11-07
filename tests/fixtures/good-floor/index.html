@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tip calculator</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 24px; background: #dedad3; color: #0a0a0a; }
+  input, button { font: inherit; padding: 8px; }
+  #result { margin-top: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Tip calculator</h1>
+  <label>Bill <input id="bill" type="number" value="100"></label>
+  <label>Tip percent <input id="tip" type="number" value="15"></label>
+  <button id="go" type="button">Work it out</button>
+  <p id="result"></p>
+  <ul id="history"></ul>
+</main>
+<script>
+  const top = 1;
+  const billInput = document.getElementById("bill");
+  const tipInput = document.getElementById("tip");
+  const result = document.getElementById("result");
+  const history_ = document.getElementById("history");
+  const rect = result.getBoundingClientRect();
+  const offset = rect.top + top;
+  class Formatter {
+    constructor(symbol) { this.symbol = symbol; }
+    money(value) { return this.symbol + value.toFixed(2); }
+  }
+  const formatter = new Formatter("$");
+  function work() {
+    const bill = Number(billInput.value);
+    const tip = (bill * Number(tipInput.value)) / 100;
+    result.textContent = "Tip " + formatter.money(tip) + ", total " + formatter.money(bill + tip);
+    const row = document.createElement("li");
+    row.textContent = result.textContent;
+    history_.appendChild(row);
+  }
+  document.getElementById("go").addEventListener("click", work);
+  setTimeout(function () { result.setAttribute("data-offset", String(offset)); }, 0);
+  window.addEventListener("resize", function () { result.setAttribute("data-width", String(window.innerWidth)); });
+  const snapshot = JSON.parse(document.getElementById("snapshot").textContent);
+  result.setAttribute("data-snapshot", String(Object.keys(snapshot).length));
+</script>
+</body>
+</html>

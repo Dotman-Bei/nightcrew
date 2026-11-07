@@ -1,0 +1,10 @@
+{
+  "name": "Tip calculator",
+  "oneLiner": "Work out a tip and a total from a bill.",
+  "howToUse": "Enter the bill and the tip percent, then press Work it out.",
+  "tests": [
+    { "name": "shows the fields", "steps": [{ "op": "expectVisible", "selector": "#bill" }, { "op": "expectVisible", "selector": "#tip" }] },
+    { "name": "works out the default tip", "steps": [{ "op": "click", "selector": "#go" }, { "op": "expectText", "selector": "#result", "contains": "Tip $15.00, total $115.00" }] },
+    { "name": "uses the values typed in", "steps": [{ "op": "fill", "selector": "#bill", "value": "200" }, { "op": "fill", "selector": "#tip", "value": "10" }, { "op": "click", "selector": "#go" }, { "op": "expectText", "selector": "#result", "contains": "total $220.00" }, { "op": "expectCount", "selector": "#history li", "count": 1 }] }
+  ]
+}
