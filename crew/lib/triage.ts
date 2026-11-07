@@ -2,8 +2,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { TriageDecision, TriageCategory } from "@/crew/lib/contracts";
 import type { JsonSchema, StructuredModel } from "@/crew/lib/model";
+import { HAIKU_SLUG } from "@/crew/lib/openrouter";
 
-export const CREW_SUPPORT_MODEL = "claude-haiku-5-5";
+export const CREW_SUPPORT_MODEL = HAIKU_SLUG;
 
 const TRIAGE_SCHEMA: JsonSchema = {
   type: "object",

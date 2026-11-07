@@ -4,6 +4,7 @@ import { buildPrompt } from "@/crew/lib/runtime";
 import type { ShiftInput } from "@/crew/lib/contracts";
 import { crewShift } from "@/crew/lib/crew-shift";
 import type { StructuredCall, StructuredModel, StructuredResult } from "@/crew/lib/model";
+import { HAIKU_SLUG, SONNET_SLUG } from "@/crew/lib/openrouter";
 
 const accept = (brief = "Build a tip calculator."): StructuredResult => ({ value: { decision: "accept", category: "ok", reason: "A small tool.", buildBrief: brief }, refused: false, costCents: 0.1 });
 const reject = (category = "needs-backend"): StructuredResult => ({ value: { decision: "reject", category, reason: "Needs a server.", buildBrief: null }, refused: false, costCents: 0.1 });
@@ -45,7 +46,7 @@ const inputWith = (ids: number[]): ShiftInput => ({
   darkReason: null,
   failure: null,
 });
-const run = (ids: number[], model: StructuredModel, runtime: CrewRuntime) => crewShift({ input: inputWith(ids), model, runtime, kitFiles: [], buildModel: "claude-sonnet-5-5" });
+const run = (ids: number[], model: StructuredModel, runtime: CrewRuntime) => crewShift({ input: inputWith(ids), model, runtime, kitFiles: [], buildModel: SONNET_SLUG });
 
 describe("crewShift", () => {
   it("builds the first accepted proposal and ships it", async () => {
@@ -53,7 +54,7 @@ describe("crewShift", () => {
     expect(output.result.outcome).toBe("built");
     expect(output.result.proposalId).toBe(2);
     expect(output.result.triage).toHaveLength(2);
-    expect(output.result.models).toEqual({ triage: "claude-haiku-5-5", build: "claude-sonnet-5-5", review: "claude-haiku-5-5" });
+    expect(output.result.models).toEqual({ triage: HAIKU_SLUG, build: SONNET_SLUG, review: HAIKU_SLUG });
     expect(output.result.costCents).toBe(31);
     expect(output.html).toBe("<html></html>");
   });
