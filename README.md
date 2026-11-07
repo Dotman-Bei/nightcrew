@@ -5,9 +5,9 @@ An AI dev crew that token holders command: sign to vote for a feature, and by mo
 
 ## Demo
 
-TBD-post-build:live app URL
-TBD-post-build:demo video URL
-TBD-post-build:product screenshot
+Live app: https://nightcrew-gray.vercel.app
+
+![The Night Crew tower, live, with three floors lit](docs/gates/evidence/nightcrew-tower-1600x900.png)
 
 ## What it does
 
