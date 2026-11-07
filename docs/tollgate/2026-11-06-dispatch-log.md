@@ -29,3 +29,9 @@ One line per dispatch, for the routing audit. Routing is in the tollgate report.
 | votes:1 | top | claude-opus-5-5 | high | executor-high | worktree | done, 9103dac |
 | votes:6 | standard | claude-sonnet-5-5 | medium | executor-high | worktree | done, 103076d |
 | foundation:3 | human gate | not dispatched | low | run by the user | their shell | PROBE RESULT: ok, 2026-11-07. Spent 1.009 cents. Budget figure 440. Streamed cost comes from the response. |
+| floor:6 | standard | claude-sonnet-5-5 | medium | executor-high | worktree | done, 11dcf70 |
+| votes:5 | top | claude-opus-5-5 | medium | executor-medium | worktree | done, 3c37c10 |
+| floor:4 | top | claude-opus-5-5 | high | executor-high | worktree | done, 1ef94b8. Executor skipped the red step; orchestrator proved it, and broke the wrapper and guard in a throwaway copy to confirm the corpus fails |
+| pipeline:8 | top | claude-opus-5-5 | high | executor-high | worktree | done, 9bcf774 |
+| pipeline:9 | top | claude-opus-5-5 | high | executor-high | worktree | done, 8e4aa4f |
+| votes:2 | top | claude-opus-5-5 | medium | executor-medium | worktree | done, 88a143a |
