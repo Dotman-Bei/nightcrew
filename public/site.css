@@ -126,3 +126,21 @@
 @media (max-width: 639px) { .vote-list .vote-row__meta { grid-column: 1 / -1; } .vote-button { grid-row: 1; } }
 /* On a phone the section is two screens: the form on the first, the rules --padt under the second's top. The .wrap starts --padt under the section's top, so that is one screen down from it. */
 @media (max-width: 639px) { #propose .propose-rules { position: absolute; top: 100vh; top: 100lvh; left: 0; right: 0; } }
+
+/* Taking part so far: real counts as a ruled row of facts, never cards or counters. */
+.demand-facts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--s-5); margin: var(--s-7) 0 0; }
+.demand-facts > div { min-width: 0; padding-top: var(--s-3); border-top: 1px solid var(--line); }
+.demand-facts dt { font-size: 14px; line-height: 20px; color: var(--p-muted); }
+.demand-facts dd { margin: var(--s-2) 0 0; font: var(--display-weight) 48px/1 var(--font-display); letter-spacing: var(--display-tracking); font-variant-numeric: tabular-nums; }
+@media (max-width: 1023px) { .demand-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 639px) { .demand-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .demand-facts dd { font-size: 36px; } }
+/* The row takes what the screen leaves under the heading. Each fact's rule, label and number sit together at the foot of its column, the numbers large, so the section is a screen of figures and not a strip above an empty ground. */
+.demand-facts { flex: 1 1 0; min-height: 0; align-items: stretch; }
+.demand-facts > div { display: flex; flex-direction: column; justify-content: flex-end; padding-top: 0; border-top: 0; }
+.demand-facts dt { padding-top: var(--s-3); border-top: 1px solid var(--line); }
+.demand-facts dd { font-size: clamp(64px, 10vw, 160px); }
+/* A label that wraps to two lines must not lift its rule above its neighbours'. */
+@media (min-width: 1024px) and (max-width: 1279px), (max-width: 639px) { .demand-facts dt { min-height: calc(var(--s-3) + 1px + 40px); } }
+/* Where the facts wrap into rows, the rows sit together at the foot, not one in each half of the screen. */
+@media (max-width: 1023px) { .demand-facts { align-content: end; } }
+@media (max-width: 639px) { .demand-facts dd { font-size: 56px; } }

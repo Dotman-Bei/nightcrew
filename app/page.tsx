@@ -6,11 +6,15 @@ import { FloorList, TowerStack } from "@/components/tower";
 import { getDb } from "@/lib/db";
 import { dayLabel, money, shortAddress, timeLabel, wholeNumber } from "@/lib/format";
 import { towerView } from "@/lib/read-models";
+import { DemandStrip } from "@/components/demand-strip";
+import { demandView } from "@/lib/demand";
 
 export const revalidate = 30;
 
 export default async function TowerPage() {
-  const view = await towerView(await getDb(), new Date());
+  const db = await getDb();
+  const view = await towerView(db, new Date());
+  const demand = await demandView(db);
   const closes = timeLabel(view.open.closesAt);
   const top = view.top[0];
   const latest = view.latest;
@@ -47,6 +51,8 @@ export default async function TowerPage() {
           </div>
         </div>
       </section>
+
+      <DemandStrip demand={demand} />
 
       <section className="section" id="last-floor" aria-labelledby="last-h">
         <div className="wrap">
