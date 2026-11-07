@@ -40,7 +40,7 @@ export function buildPrompt(input: Pick<BuildInput, "shiftSlug" | "brief" | "pro
 
 export function sendBackPrompt(reasons: string[]): string {
   return [
-    "The review agent sent this floor back. Fix each point, update the files in /mnt/session/outputs/, and run the check again until it prints CHECK PASS.",
+    "The review agent sent this floor back. Fix each point, write the files again with write_file, and call run_floor_check until it prints CHECK PASS.",
     "",
     ...reasons.map((reason, index) => `${index + 1}. ${reason}`),
   ].join("\n");

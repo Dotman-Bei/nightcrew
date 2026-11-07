@@ -49,11 +49,11 @@ describe("transcripts", () => {
     expect(item.text.length).toBeLessThan(21000);
   });
   it("removes anything key-shaped and counts it", () => {
-    const { entries, removed } = scrubTranscript([{ at: "t", kind: "message", tool: null, text: `a sk-ant-api03-abcdefghij b 0x${"a".repeat(64)} c`, truncated: false, isError: false }]);
-    expect(entries[0].text).toBe("a [removed] b [removed] c");
-    expect(removed).toBe(2);
+    const { entries, removed } = scrubTranscript([{ at: "t", kind: "message", tool: null, text: `a sk-or-v1-abcdefghij b sk-ant-api03-abcdefghij c 0x${"a".repeat(64)} d`, truncated: false, isError: false }]);
+    expect(entries[0].text).toBe("a [removed] b [removed] c [removed] d");
+    expect(removed).toBe(3);
     expect(entries[1]).toMatchObject({ kind: "status", isError: true });
-    expect(entries[1].text).toContain("Removed 2 key-shaped strings");
+    expect(entries[1].text).toContain("Removed 3 key-shaped strings");
   });
   it("adds nothing to a clean transcript", () => {
     const clean = [{ at: "t", kind: "message" as const, tool: null, text: "nothing here", truncated: false, isError: false }];

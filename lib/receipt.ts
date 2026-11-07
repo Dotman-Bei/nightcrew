@@ -13,8 +13,8 @@ export type ReceiptBundle = {
   failure: ReceiptFailure | null;
   dark_reason: string | null;
   agent_identity: "night-crew";
-  agent_tool: "Claude Managed Agents";
-  model_provider: "Anthropic";
+  agent_tool: "Night Crew tool loop on OpenRouter";
+  model_provider: "Anthropic via OpenRouter";
   models: { triage: string; build: string | null; review: string | null };
   founder_address: string;
   tally_hash: string;
@@ -59,8 +59,8 @@ export function buildReceipt(fields: Omit<ReceiptBundle, "standard" | "agent_ide
     ...fields,
     standard: "nightcrew-receipt/1",
     agent_identity: "night-crew",
-    agent_tool: "Claude Managed Agents",
-    model_provider: "Anthropic",
+    agent_tool: "Night Crew tool loop on OpenRouter",
+    model_provider: "Anthropic via OpenRouter",
     tally_hash: keccakText(out["tally.json"]),
     triage_hash: keccakText(out["triage.json"]),
     transcript_hash: hashOf("transcript.json"),

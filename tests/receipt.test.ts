@@ -9,7 +9,7 @@ const fields = {
   outcome: "shipped" as const,
   failure: null,
   dark_reason: null,
-  models: { triage: "claude-haiku-5-5", build: "claude-sonnet-5-5", review: "claude-haiku-5-5" },
+  models: { triage: "anthropic/claude-haiku-5.5", build: "anthropic/claude-sonnet-5.5", review: "anthropic/claude-haiku-5.5" },
   founder_address: "0x0000000000000000000000000000000000000001",
   cost_cents: 41,
   timestamp: "t",
@@ -27,7 +27,7 @@ describe("buildReceipt", () => {
   const receipt = buildReceipt(fields, parts);
 
   it("uses the Origin Capsule field names", () => {
-    expect(receipt.bundle).toMatchObject({ standard: "nightcrew-receipt/1", agent_identity: "night-crew", model_provider: "Anthropic", founder_address: fields.founder_address });
+    expect(receipt.bundle).toMatchObject({ standard: "nightcrew-receipt/1", agent_identity: "night-crew", agent_tool: "Night Crew tool loop on OpenRouter", model_provider: "Anthropic via OpenRouter", founder_address: fields.founder_address });
   });
   it("hashes each part as keccak256 of the exact bytes it serves", () => {
     expect(receipt.bundle.transcript_hash).toBe(keccak256(toBytes(receipt.parts["transcript.json"])));

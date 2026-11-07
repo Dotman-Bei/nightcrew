@@ -1,7 +1,7 @@
 import type { TranscriptEntry } from "@/crew/lib/contracts";
 
 const MAX_ENTRY_CHARS = 20_000;
-const KEY_PATTERNS = [/sk-ant-[A-Za-z0-9_-]{8,}/g, /\b0x[a-fA-F0-9]{64}\b/g];
+const KEY_PATTERNS = [/sk-or-[A-Za-z0-9_-]{8,}/g, /sk-ant-[A-Za-z0-9_-]{8,}/g, /\b0x[a-fA-F0-9]{64}\b/g];
 
 export type RawEvent = { type: string; [key: string]: unknown };
 
@@ -53,7 +53,7 @@ export function normaliseEvents(events: RawEvent[]): TranscriptEntry[] {
   return out;
 }
 
-/** Removes anything key-shaped. The sandbox holds no secrets, so a match is a defect worth seeing. */
+/** Removes anything key-shaped. The agent's tools can reach no secrets, so a match is a defect worth seeing. */
 export function scrubTranscript(entries: TranscriptEntry[]): { entries: TranscriptEntry[]; removed: number } {
   let removed = 0;
   const clean = entries.map((item) => {
@@ -71,7 +71,7 @@ export function scrubTranscript(entries: TranscriptEntry[]): { entries: Transcri
     at: clean[clean.length - 1]?.at ?? "",
     kind: "status",
     tool: null,
-    text: `Removed ${removed} key-shaped string${removed === 1 ? "" : "s"} from this transcript. The sandbox holds no secrets, so this is a defect worth seeing.`,
+    text: `Removed ${removed} key-shaped string${removed === 1 ? "" : "s"} from this transcript. The agent's tools can reach no secrets, so this is a defect worth seeing.`,
     truncated: false,
     isError: true,
   };
