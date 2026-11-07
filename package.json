@@ -12,8 +12,7 @@
     "start": "next start -H 127.0.0.1 -p 3000",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "db:migrate": "tsx db/migrate.ts",
-    "kit": "node scripts/build-floor-kit.mjs"
+    "db:migrate": "tsx db/migrate.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.6.0",
@@ -37,7 +36,6 @@
     "@types/node": "22.19.0",
     "@types/react": "19.2.0",
     "@types/react-dom": "19.2.0",
-    "esbuild": "0.28.2",
     "tsx": "4.23.15",
     "typescript": "7.0.2",
     "vitest": "5.1.0"
