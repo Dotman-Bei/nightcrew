@@ -60,3 +60,4 @@ One line per dispatch, for the routing audit. Routing is in the tollgate report.
 | launch:17 | human gate | not dispatched | low | run by the user | public pages | done, de4d3db. FLOOR HEADERS OK, re-run by the orchestrator |
 | launch:10 | human gate | not dispatched | low | run by the user | GitHub | done, 282cca2. SHIFTS_ARMED true. Known risk accepted: the frame-removal gap, to be fixed before Sun 8 Nov 22:00 UTC |
 | launch:13 | human gate | not dispatched | low | run by the user | GitHub Actions | done, 4ebcdbb. Run Sat 12:46 UTC, ahead of the Sunday slot. Floor 1 shipped, 10 cents, attested |
+| (extra) shift 2 | not a task | not dispatched | - | run by the user | GitHub Actions | Second off-schedule evidence shift, run 42374883748, Sat 12:59 UTC: shipped, 10 cents. Attestation pending, because ATTESTER_PRIVATE_KEY had been set to an empty value at 12:59:32 UTC. Re-set at 13:07:45 UTC from a well-formed key; the next publish retries it |
