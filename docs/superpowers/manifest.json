@@ -1861,6 +1861,116 @@
       "status": "pending"
     },
     {
+      "id": "frontend:11",
+      "subsystem": "frontend",
+      "title": "Amendment: social preview, icons and metadata for every route",
+      "plan": "docs/superpowers/plans/2026-11-06-frontend.md",
+      "depends_on": [
+        "foundation:4",
+        "frontend:1",
+        "frontend:3",
+        "frontend:4",
+        "frontend:5",
+        "frontend:6",
+        "frontend:7",
+        "frontend:8",
+        "frontend:9",
+        "frontend:10"
+      ],
+      "effort": "medium",
+      "files": {
+        "create": [
+          "scripts/make-social.mjs",
+          "lib/site-meta.ts",
+          "public/social/card.png",
+          "public/icon.svg",
+          "public/favicon.ico",
+          "public/apple-icon.png"
+        ],
+        "modify": [
+          "app/layout.tsx",
+          "app/vote/page.tsx",
+          "app/built/page.tsx",
+          "app/rejected/page.tsx",
+          "app/veto/page.tsx",
+          "app/floors/[slug]/page.tsx",
+          "app/shifts/[slug]/page.tsx"
+        ],
+        "test": [
+          "scripts/check-meta.mjs"
+        ]
+      },
+      "provides": [
+        "lib/site-meta.ts: SITE_NAME, SITE_DESCRIPTION, SOCIAL_IMAGE, absoluteUrl(path): string, pageMetadata({ title, description, path }): Metadata; scripts/make-social.mjs; scripts/check-meta.mjs; public/social/card.png (1200x630), public/icon.svg, public/favicon.ico, public/apple-icon.png"
+      ],
+      "requires": [
+        "lib/config.ts: VIBES_ADDRESS, EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS, VIBESTARTER_API, BUILD_WINDOW_CLOSE, EASSCAN_ATTESTATION_URL, MAX_FLOOR_BYTES, baseRpcUrl(), siteOrigin(), floorsOrigin(), floorsOnOwnHost(), floorDocumentUrl(hash), vetoAddress()",
+        "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
+        "app/shifts/[slug]/page.tsx; app/shifts/latest/page.tsx",
+        "app/floors/[slug]/page.tsx; components/floor-frame.tsx: FloorFrame({ src, title })",
+        "app/vote/page.tsx",
+        "app/built/page.tsx; components/waitlist-form.tsx",
+        "app/rejected/page.tsx",
+        "app/veto/page.tsx"
+      ],
+      "gate": {
+        "run": "node scripts/check-meta.mjs",
+        "expect": "META CHECK PASS"
+      },
+      "commit": "feat: add the social card, icons and metadata for every route",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
+      "id": "frontend:12",
+      "subsystem": "frontend",
+      "title": "Amendment: live demand on the home page, from real counts",
+      "plan": "docs/superpowers/plans/2026-11-06-frontend.md",
+      "depends_on": [
+        "foundation:5",
+        "foundation:6",
+        "votes:6",
+        "frontend:1",
+        "frontend:2",
+        "frontend:9"
+      ],
+      "effort": "medium",
+      "files": {
+        "create": [
+          "lib/demand.ts",
+          "components/demand-strip.tsx"
+        ],
+        "modify": [
+          "app/page.tsx",
+          "public/site.css"
+        ],
+        "test": [
+          "tests/demand.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/demand.ts: type DemandView = { wallets: number; votes: number; walletProposals: number; seededProposals: number; waitlist: number }; demandView(db): Promise<DemandView>; components/demand-strip.tsx: DemandStrip({ demand })"
+      ],
+      "requires": [
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "db/migrations/001_init.sql: shifts, proposals, votes, floors, receipts, receipt_parts, vetoes, waitlist, rate_events",
+        "lib/shifts.ts: nextCloseAfter(now): Date; getOpenShift(db); ensureOpenShift(db, now): Promise<Shift>; claimScheduled(db, now); claimOffSchedule(db, now, reason); createRehearsal(db, now, reason, proposalText, author); spentCents(db)",
+        "lib/proposals.ts: normaliseProposal(text): string; insertProposal(db, proposal: InsertProposal): Promise<number>",
+        "lib/read-models.ts: towerView(db, now); receiptView(db, slug); floorView(db, slug); voteView(db, now, page); rejectedView(db); builtView(db); buildTowerRows; type TowerRow, ProposalRow, TowerView",
+        "components/site-shell.tsx: PageShell({ closeLine, children }), SiteNav, SiteFooter, Arrow; components/kit-scripts.tsx: KitScripts; app/layout.tsx; scripts/check-page.mjs; public/taste; public/site.css",
+        "app/page.tsx: the Tower at /"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/demand.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "feat: show live demand on the home page, from real counts",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
       "id": "launch:1",
       "subsystem": "launch",
       "title": "Deploy config",

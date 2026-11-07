@@ -116,6 +116,12 @@ All copy below is final. Words in `{braces}` come from the database, and the cod
 - Picture: the tower, newest at the top. Empty floors "Not built yet" {11 Nov}, then "Tonight's floor" {22:00 UTC}, then each shipped floor lit with its name, each dark floor "Stayed dark".
 - Float card, one, opaque: "Leading tonight" / {the top proposal's text}
 
+**Taking part so far (`#demand`).** Added 2026-11-07 by `frontend:12`. Real counts from the database, as a ruled row of facts like the hero's, never cards or counters.
+
+- H2: "Taking part so far"
+- Line: "Counted from the database, at most 30 seconds ago. Rehearsals are left out. Seeded proposals were written by the builder to start the vote, and are counted apart from proposals signed by wallets."
+- Facts: "Wallets that voted or proposed" {2} · "Votes signed" {14} · "Proposals from wallets" {1} · "Seeded proposals" {8} · "Waitlist signups" {0}. A zero shows as 0, and no row is hidden.
+
 **Last night's floor (`#last-floor`).**
 
 - H2: "Floor {4}: {Release schedule table}" with "shipped {5 Nov}" in the muted run-on
@@ -236,6 +242,7 @@ Category words: Offensive · Illegal · Impersonation · Investment claims · Ab
 - **Close:** H2 "Vote on tonight's floor", one line per page, button "Vote tonight" at XL across the wrap
 - **Footer:** the name, then Tower (Floors, Shifts) · Receipts (Latest receipt, Rejected) · Proposals (Vote, Propose) · Build (How it was built, Waitlist)
 - **Legal row:** "© 2026 Night Crew" · "An independent project. Not affiliated with Vibestarter."
+- **Metadata and icons** (added 2026-11-07 by `frontend:11`): each route has its own title and description. One social card, `public/social/card.png` at 1200x630, uses the sand ground, the ink tower panel, the teal accent, Host Grotesk, JetBrains Mono and the arc mark. It holds only copy already on the site, with no numbers. The favicon is the teal arc mark on sand. Every URL in the tags is absolute, from `NEXT_PUBLIC_SITE_ORIGIN`.
 
 Close lines: Tower and Vote "Voting closes at {22:00 UTC}. It costs no gas." · Receipt "Every shift has a receipt like this one, passed or failed." · Floor "The next floor comes from tonight's vote." · Built "The crew that built this page's floors runs again tonight." · Rejected "Anything that passes triage can be built tonight." · Veto "Every veto is published with its reason."
 

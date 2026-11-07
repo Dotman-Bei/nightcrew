@@ -657,7 +657,7 @@ A public shift's slug is the next integer. Every public shift is one floor, lit 
 
 `docs/FRONTEND.md` holds the visual direction, real copy and component rules. Pages in build order:
 
-1. **Tower** `/`: the landing page and the product. Six screens: hero with the live tower and the newest floor lit, last night's floor, tonight's vote, how a shift works, the whole tower with the close of the build window marked, and the close and footer. The first screen alone answers what this is, what shipped last night, what is being voted on tonight, and how to vote.
+1. **Tower** `/`: the landing page and the product. Seven screens: hero with the live tower and the newest floor lit, a row of real counts of who has taken part (amended 2026-11-07, `frontend:12`), last night's floor, tonight's vote, how a shift works, the whole tower with the close of the build window marked, and the close and footer. The first screen alone answers what this is, what shipped last night, what is being voted on tonight, and how to vote.
 2. **Receipt** `/shifts/[slug]`: proposal, tally, triage decision, transcript, diff against the blank floor, test results, cost, attestation link, downloadable parts.
 3. **Floor** `/floors/[slug]`: the tool in its sandbox, one click from its receipt.
 4. **Vote and propose** `/vote`: connect a wallet, vote, propose. Shows the top 5 and the paged list of all open proposals (section 7).
@@ -665,7 +665,7 @@ A public shift's slug is the next integer. Every public shift is one floor, lit 
 6. **Rejected** `/rejected`: every triage rejection and veto with its reason.
 7. **Veto** `/veto`: accepts only the `VETO_ADDRESS` signature, not linked from public pages, `noindex`.
 
-Pages 1, 2, 3, 5 and 6 are server-rendered, wallet-free, and use `export const revalidate = 30`. Every page carries a "not affiliated" line. `tests/copy.test.ts` scans page sources for investment language and scans the voting flow for any mention of the contest vote.
+Pages 1, 2, 3, 5 and 6 are server-rendered, wallet-free, and use `export const revalidate = 30`. Every page carries a "not affiliated" line. Every route has its own title and description, a canonical URL, Open Graph tags and a `summary_large_image` Twitter card with one 1200x630 card, and a favicon set drawn from the arc mark. All of these URLs are absolute, built from `NEXT_PUBLIC_SITE_ORIGIN` (amended 2026-11-07, `frontend:11`). `tests/copy.test.ts` scans page sources for investment language and scans the voting flow for any mention of the contest vote.
 
 ## 11. Failure handling
 
