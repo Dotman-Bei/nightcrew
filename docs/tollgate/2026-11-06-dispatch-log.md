@@ -35,3 +35,7 @@ One line per dispatch, for the routing audit. Routing is in the tollgate report.
 | pipeline:8 | top | claude-opus-5-5 | high | executor-high | worktree | done, 9bcf774 |
 | pipeline:9 | top | claude-opus-5-5 | high | executor-high | worktree | done, 8e4aa4f |
 | votes:2 | top | claude-opus-5-5 | medium | executor-medium | worktree | done, 88a143a |
+| votes:3 | top | claude-opus-5-5 | medium | executor-medium | worktree | done, 3ffc62c |
+| pipeline:12 | top | claude-opus-5-5 | xhigh | executor-xhigh | worktree | done, 953c065 |
+| floor:5 | top | claude-opus-5-5 | medium | executor-medium | worktree | done, f066b8a. Orchestrator re-ran the end-to-end test against the stricter gate: 11 of 11 |
+| votes:4 | top | claude-opus-5-5 | high | executor-high | worktree | done, 74df785 |
