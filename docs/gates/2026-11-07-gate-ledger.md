@@ -38,7 +38,7 @@ Recorded here so this one file is the complete picture. The concierge did not ru
 | launch:17 floor headers on the live site | done by the user | dispatch log, FLOOR HEADERS OK |
 | launch:10 arm the nightly job | done by the user | `SHIFTS_ARMED` read back as `true` |
 | launch:13 off-schedule shift | done by the user | run 42373776560, shift 1 |
-| **launch:12 real-wallet check** | **open, no record of it running** | See "Flags before Submit" |
+| launch:12 real-wallet check | **vote half done by the user**, Sat 2026-11-07 before 15:41 UTC: the application wallet connected on `/vote` and signed one vote. Still to report: the floor half, the task's Steps 1 to 3 (open the newest floor with the wallet extension installed, use the tool, confirm no wallet prompt appears) | Live `/` and `/vote` read "Wallets tonight 1"; the task's check prints `FLOOR LIVE` (orchestrator, 15:41 UTC); dispatch log |
 | launch:11 second hostname | open, non-blocking | |
 | launch:14 spare off-schedule shift | open, may be moot: 3 floors are already on record | |
 | launch:16 judging-night settings | open, Mon 9 Nov by 21:00 UTC | |
@@ -76,7 +76,7 @@ Recorded here so this one file is the complete picture. The concierge did not ru
 
 ## Flags before Submit
 
-1. **The voting flow has no real-wallet proof on the live site.** launch:12 has no record, and every receipt shows 0 wallets. The form tells judges to vote. The user is connecting a wallet anyway: a vote from it would close this.
+1. ~~The voting flow has no real-wallet proof on the live site.~~ Closed Sat 2026-11-07: the user's application wallet signed one vote on `/vote`, and the live site reads "Wallets tonight 1" (orchestrator, 15:41 UTC). Receipts already on record still show 0 wallets, because their shifts closed before the vote. The next shift's receipt should count it.
 2. ~~"Someone asked for in one sentence"~~ reworded on the user's word.
 3. **The newest floor's receipt shows "Attestation pending"**, and it will not clear at the next publish unless `ATTESTER_PRIVATE_KEY` is re-set (see Evidence). The text now says "attestation status".
 4. ~~"The spec, plans and manifest are in the repo"~~ removed on the user's word. The repo is public, so it could go back.
