@@ -2,3 +2,83 @@
 
 /* A pane fills its section on a tablet too, where the section's height is not fixed. */
 @media (min-width: 640px) and (max-width: 1279px) { main > section > .wrap > .fill { min-height: 62svh; flex: 1 0 auto; } }
+
+/* The tower: the product's own picture. A dark stack of floors, newest at the top. */
+.stage > .tower { inset: 24px; display: flex; flex-direction: column; gap: 6px; padding: 16px; background: #0a0a0a; color: #dedad3; border-radius: var(--r-md); overflow: hidden; }
+.tower__floor { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 0 12px; background: #151515; border-radius: var(--r-sm); font-size: 14px; line-height: 1.2; color: inherit; text-decoration: none; }
+.tower__num { font: 500 13px/1 var(--font-mono); color: #84827e; }
+.tower__name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tower__state { font: 500 13px/1 var(--font-mono); color: #84827e; }
+.tower__floor--lit { background: var(--p-accent); color: #ffffff; }
+.tower__floor--lit .tower__num, .tower__floor--lit .tower__state { color: #ffffff; }
+.tower__floor--tonight { background: #151515; box-shadow: inset 0 0 0 1px var(--p-accent); }
+.tower__floor--tonight .tower__state { color: #dedad3; }
+.tower__floor--upcoming { background: #101010; color: #84827e; }
+.tower__floor--dark { background: #101010; color: #84827e; }
+
+/* Hero float card: one opaque fact over the tower, on its empty upcoming floors so no shipped floor is covered. */
+.stage > .tower-float { left: 48px; top: 48px; z-index: 2; width: min(300px, calc(100% - 96px)); padding: 16px; background: var(--p-bg); color: var(--p-ink); border: 1px solid rgba(10, 10, 10, 0.14); border-radius: var(--r-sm); }
+.tower-float p { margin: 0; }
+.tower-float__text { font-size: 16px; line-height: 24px; }
+@media (max-width: 639px) {
+  .stage > .tower-float { left: 40px; right: 40px; top: 40px; width: auto; padding: 12px; }
+  .tower-float__text { font-size: 14px; line-height: 20px; }
+}
+
+/* The app window, from the skill's app-frame recipe. */
+.app.ui { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); margin-top: var(--s-7); background: var(--u-bg); border: 1px solid var(--u-border); border-radius: var(--u-r); box-shadow: var(--u-shadow); }
+.app > .app__pane { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.app > .app__pane + .app__pane { border-left: 1px solid var(--u-line); }
+.app > .app__pane > .ui-panel { width: 100%; border: 0; border-radius: 0; box-shadow: none; }
+.app > .app__pane::after { content: ""; position: absolute; inset: auto 0 0 0; height: 64px; background: linear-gradient(transparent, var(--u-bg)); pointer-events: none; }
+@media (min-width: 1024px) and (max-width: 1279px) { .app.ui { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); } }
+@media (max-width: 1023px) {
+  .app.ui { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .app > .app__pane--list { max-height: 252px; }
+  .app > .app__pane--list::after { display: none; }
+  .app .ui-win__side { display: none; }
+  .app .ui-win__body { grid-template-columns: minmax(0, 1fr); }
+  .app > .app__pane + .app__pane { border-left: 0; border-top: 1px solid var(--u-line); }
+}
+@media (max-width: 639px) {
+  .app.ui { grid-template-rows: minmax(0, 1fr); }
+  .app > .app__pane--list { display: none; }
+  .app > .app__pane + .app__pane { border-top: 0; }
+}
+
+/* Floor rows inside the app window. */
+.floor-rows { list-style: none; margin: 0; padding: 0; }
+.floor-rows__row { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 52px; padding: 8px 16px; border-bottom: 1px solid var(--u-line); font-size: 14px; color: inherit; text-decoration: none; }
+.floor-rows__who { font: 500 13px/1 var(--font-mono); }
+.floor-rows__sub { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.floor-rows__chip { font: 500 13px/1 var(--font-mono); }
+.floor-rows__row--lit .floor-rows__chip { color: var(--p-accent); }
+.floor-rows__row--muted { color: var(--u-muted, #55514c); }
+.floor-rows__row--window { min-height: 36px; font-size: 13px; font-weight: 500; background: var(--p-surface); }
+
+/* A real log in the open pane. */
+.log { margin: 0; padding: 16px; font: 400 13px/1.7 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.log__pass { color: var(--p-accent); }
+
+/* Tonight's proposal rows. */
+.vote-rows .rows__name { font-weight: 400; }
+@media (max-width: 639px) {
+  #tonight .vote-rows > li { grid-template-columns: minmax(0, 1fr); padding-block: var(--s-2); }
+  #tonight .vote-rows > li:nth-child(n+3) { display: none; }
+  #tonight .vote-rows .rows__value { grid-column: 1; grid-row: auto; color: var(--muted); }
+  #tonight .how-to .rows > li { padding-block: var(--s-2); }
+  #tonight .how-to { gap: var(--s-3); }
+}
+@media (max-width: 1279px) { #tonight .rows > li { padding-block: var(--s-3); } }
+
+/* The stored floor picture is 3:2 and shares the page's putty ground, so the frame keeps its ratio and a hairline marks its edge. */
+#last-floor .frame--photo { outline: 1px solid var(--line); outline-offset: -1px; }
+
+/* How a shift works: the kit's diagram across the wrap. */
+.shift-diagram { min-height: 0; }
+.shift-diagram .dg { width: 100%; height: 100%; }
+/* On a phone the timeline runs down the page: each caption stacks its name over its line and wraps, so no line is cut at the panel's edge. */
+@media (max-width: 639px) {
+  .shift-diagram .dg .dg-node.dg-node--side > .dg-cap { flex-direction: column; align-items: flex-start; gap: 2px; white-space: normal; width: max-content; max-width: min(260px, calc(100vw - 140px)); }
+  .shift-diagram .dg .dg-node.dg-node--side > .dg-cap .dg-cap__s { white-space: normal; }
+}
