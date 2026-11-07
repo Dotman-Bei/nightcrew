@@ -16,6 +16,6 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
   if (!data) return new Response("Not found", { status: 404 });
   return new Response(Buffer.from(data, "base64"), {
     status: 200,
-    headers: { "Content-Type": "image/png", "X-Content-Type-Options": "nosniff", "Cache-Control": "public, max-age=3600" },
+    headers: { "Content-Type": "image/png", "X-Content-Type-Options": "nosniff", "Cache-Control": "public, max-age=60" },
   });
 }

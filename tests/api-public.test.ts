@@ -54,9 +54,10 @@ describe("floor screenshots", () => {
     await db.query("insert into shifts (id, slug, label, status, closes_at) values (700, '70', 'scheduled', 'shipped', now())");
     await db.query("insert into floors (shift_id, name, one_liner, how_to_use, html, hash, script_hashes, screenshot_wide) values (700, 'n', 'o', 'h', 'x', '0xshot', 's', 'iVBORw0KGgo=')");
   });
-  it("serves the stored image", async () => {
+  it("serves the stored image, cached for at most a minute so a veto reaches it soon", async () => {
     const response = await shot("70");
     expect(response.headers.get("Content-Type")).toBe("image/png");
+    expect(response.headers.get("Cache-Control")).toBe("public, max-age=60");
     expect((await response.arrayBuffer()).byteLength).toBeGreaterThan(0);
   });
   it("returns 410 once the floor is vetoed", async () => {
