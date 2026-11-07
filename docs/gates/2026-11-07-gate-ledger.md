@@ -64,7 +64,7 @@ Recorded here so this one file is the complete picture. The concierge did not ru
 
 **Fundable, Sat 2026-11-07 13:58 UTC, on https://nightcrew-gray.vercel.app:** 68/100, verdict PROMISING, receipt F-H7BYV. Idea 38/60 (problem and demand 10/20, differentiation 10/15, timing 7/10, backer fit 11/15). Execution 30/40 (craft 6/10, reliability 10/10, product evidence 14/20). Its line, shown to anyone with the link: "the machine runs, the crowd has not shown up yet." Named misses: no custom domain, no social preview image, all proposals seeded, 0 wallets. Its "working vote flow" comes from reading the page, so it is not proof of launch:12.
 
-**Repo-flip scan (read-only, for C5):** one tracked env file, `.env.example`. Secret-shaped strings in the tree are 3 short test fixtures (19 to 23 characters), in `tests/` and the pipeline plan. No database URL with a password in the tree or history. The 64-hex values are the public schema UID and a hash test vector. This was a pattern scan, not a full audit.
+**Repo-flip scan (read-only, for C5):** one tracked env file, `.env.example`. Secret-shaped strings in the tree are 3 short test fixtures (19 to 23 characters), in `tests/` and the pipeline plan. No database URL with a password in the tree or history. The 64-hex values are the public schema UID and a hash test vector. This was a pattern scan, not a full audit. A flip would also publish working notes in `docs/`: the refused card, the OpenRouter key pasted into chat and the decision not to rotate it, the accepted frame-removal gap, the Discord thread, and local paths with the Windows username. An anonymous request to the repo returns 404 today, and no live page links to it.
 
 ## Flags before Submit
 
