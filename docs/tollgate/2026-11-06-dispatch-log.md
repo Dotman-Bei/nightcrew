@@ -46,3 +46,10 @@ One line per dispatch, for the routing audit. Routing is in the tollgate report.
 | frontend:4 | top | claude-opus-5-5 | high | executor-high | worktree | done, 5e20e8f. Gate passed on floors/1 and floors/3. Stage wrappers added from the printed code, reviewed |
 | launch:6 | human gate | not dispatched | low | run by the user | their shell | done. Secret OPENROUTER_API_KEY set. Variables CREW_BUILD_MODEL anthropic/claude-sonnet-5.5, CREW_SHIFT_CAP_CENTS 60, CREW_TOTAL_BUDGET_CENTS 440 and VETO_ADDRESS set. Neither fallback setting is set |
 | launch:4 | human gate | not dispatched | low | run by the user | their shell | done. Secret DATABASE_URL on GitHub, confirmed by name. User reports db:migrate done, and set the Vercel variables |
+| launch:8 | human gate | not dispatched | low | run by the user | their shell | done, 6388330. 8 seeded proposals open |
+| frontend:5 | top | claude-opus-5-5 | high | executor-high | worktree | done, 3807180. Layout, plural and keyboard fixes from the printed code, reviewed with orchestrator screenshots at 390 and 1440 |
+| frontend:7 | standard | claude-sonnet-5-5 | low | executor-high | worktree | done, 87e8e4f. As printed |
+| frontend:6 | standard | claude-sonnet-5-5 | medium | executor-high | worktree | done, dfd939d. As printed. Gate re-run after the session restart |
+| frontend:8 | top | claude-opus-5-5 | low | executor-medium | worktree | done, b338003. Executor stopped with the session mid-fix, with the gate failing. Orchestrator restored the printed code, which passes |
+| frontend:9 | standard | claude-sonnet-5-5 | low | executor-high | worktree | done, 2779538. Test-only task, so no red step |
+| launch:2 | standard | claude-sonnet-5-5 | medium | executor-high | worktree | done, d28cd4c. Replaces the workspace stub README, as the stub said. PowerShell gate run by the orchestrator: PASS |
