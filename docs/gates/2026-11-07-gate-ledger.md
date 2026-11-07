@@ -38,7 +38,7 @@ Recorded here so this one file is the complete picture. The concierge did not ru
 | launch:17 floor headers on the live site | done by the user | dispatch log, FLOOR HEADERS OK |
 | launch:10 arm the nightly job | done by the user | `SHIFTS_ARMED` read back as `true` |
 | launch:13 off-schedule shift | done by the user | run 42373776560, shift 1 |
-| launch:12 real-wallet check | **vote half done by the user**, Sat 2026-11-07 before 15:41 UTC: the application wallet connected on `/vote` and signed one vote. Still to report: the floor half, the task's Steps 1 to 3 (open the newest floor with the wallet extension installed, use the tool, confirm no wallet prompt appears) | Live `/` and `/vote` read "Wallets tonight 1"; the task's check prints `FLOOR LIVE` (orchestrator, 15:41 UTC); dispatch log |
+| launch:12 real-wallet check | done by the user, Sat 2026-11-07. Vote: the application wallet connected on `/vote` and signed one vote. Floor: with the wallet extension installed, the user used floor 4's tool and reported no wallet prompt (15:48 UTC) | Live `/` and `/vote` read "Wallets tonight 1"; the task's check prints `FLOOR LIVE` (orchestrator); commit 7517714; dispatch log |
 | launch:11 second hostname | open, non-blocking | |
 | launch:14 spare off-schedule shift | open, may be moot: 3 floors are already on record | |
 | launch:16 judging-night settings | open, Mon 9 Nov by 21:00 UTC | |
