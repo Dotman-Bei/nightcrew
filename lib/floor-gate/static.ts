@@ -1,10 +1,11 @@
 import { checkCoreScript, parseFloor, parseScript, type Finding, type JsNode } from "@/lib/floor-gate/static-core";
+import { checkExtendedScript } from "@/lib/floor-gate/static-extended";
 
 export type { Finding } from "@/lib/floor-gate/static-core";
 
 type ScriptRule = (ast: JsNode) => Finding[];
 
-const SCRIPT_RULES: ScriptRule[] = [checkCoreScript];
+const SCRIPT_RULES: ScriptRule[] = [checkCoreScript, checkExtendedScript];
 
 /** Runs every static rule on a raw floor. An empty list means it passed. */
 export function runStaticGate(html: string): Finding[] {
