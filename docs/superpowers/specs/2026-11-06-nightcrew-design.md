@@ -345,21 +345,24 @@ The first script to run in every floor:
 Content-Security-Policy: sandbox allow-scripts; default-src 'none'; script-src <floors.script_hashes>;
   style-src 'unsafe-inline'; img-src data:; font-src data:; media-src data:; connect-src 'none';
   frame-src 'none'; worker-src 'none'; object-src 'none'; manifest-src 'none'; form-action 'none';
-  base-uri 'none'; frame-ancestors <main origin>
+  base-uri 'none'; frame-ancestors <NEXT_PUBLIC_SITE_ORIGIN, when set> 'self'
 X-Content-Type-Options: nosniff
 Referrer-Policy: no-referrer
 Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), clipboard-read=()
 Cross-Origin-Resource-Policy: cross-origin
-Cache-Control: public, max-age=31536000, immutable
+Cache-Control: no-store
 ```
+
+**Amended 2026-11-07 (`floor:8`).** Floors were first served `public, max-age=31536000, immutable`, and `frame-ancestors` fell back to the request's `Host` and `X-Forwarded-*` headers. A vetoed floor could then stay in a browser or shared cache for a year, and a forged header could widen who may frame a floor. The two lines below on framing and vetoes replace the originals.
 
 - `script-src` lists only hashes, with no `'unsafe-inline'` and no `'unsafe-eval'`. Inline event handlers, `javascript:` URLs, scripts inserted through the DOM, `Function` and string timers all fail, so floors may use `innerHTML` safely.
 - The CSP `sandbox` directive means the floor is sandboxed even when opened directly in a tab, so its origin is opaque and it has no cookies or storage.
 - The floor page embeds it as `<iframe sandbox="allow-scripts" allow="" referrerpolicy="no-referrer">`, with no `allow-same-origin`.
 - **Self-navigation cannot be stopped by CSP or the sandbox.** Assigning `document.location` loads another page inside the frame. So the static gate rejects it, the browser gate fails on it, and the floor page counts the frame's `load` events and removes the frame on a second one, replacing it with a line saying the floor tried to leave its sandbox.
 - When `FLOORS_ORIGIN` is set, the route is served only from that second hostname. `proxy.ts` returns 404 for `/f/*` on the main host and for everything except `/f/*` on the floors host.
-- On the main host a floor's URL is relative, so it works on any port and any deployment URL. `frame-ancestors` is `NEXT_PUBLIC_SITE_ORIGIN` when set, otherwise the request's own host.
-- A vetoed floor returns 410.
+- On the main host a floor's URL is relative, so it works on any port and any deployment URL. `frame-ancestors` is `'self'`, plus `NEXT_PUBLIC_SITE_ORIGIN` when it is a plain http(s) origin; any other value is ignored. It is never built from request headers. The browser checks `'self'` against the URL it actually loaded, so a forged `Host` or `X-Forwarded-Host` cannot widen it, and every visitor and every cache gets the same headers. On the floors hostname, `'self'` names that hostname, so `launch:11` needs the variable set.
+- A vetoed floor returns 410 on its next load. Floors are served `no-store`, so no browser or shared cache keeps a copy to show after a veto. The cost is one function call and one database read per floor load, with no saving on a repeat view. At this site's traffic that is small next to the floor page itself, which already reads the database. Limits that stay: a tab already open on a floor keeps it until reloaded. The floor page regenerates every 30 seconds, so until its next regeneration its heading can still name the floor while its frame shows the 410. The screenshot route keeps `max-age=3600`, so a browser that already loaded a floor's picture can show it for up to an hour.
+- **Verified 2026-11-07 in real Chrome** by `tests/floor-serving-browser.test.ts`, against the code before and after `floor:8`. Before: a browser that had loaded a floor still got it, with status 200, after the veto, and a page on another origin framed the floor by forging `X-Forwarded-Host`. After: the next load got 410, the forged page was refused, and the site's own page still framed the floor under the CSP sandbox. The floor page gate (`check-page.mjs floors/1 --expect-floor`) also passed on a production build with the variable unset.
 
 ### The second hostname does not block launch
 
@@ -417,7 +420,7 @@ Self-navigation stays reachable without the `document` name, for example through
 
 ### Veto
 
-The user can veto an open proposal or darken a shipped floor by signing with the `VETO_ADDRESS` wallet at `/veto`. Each veto is stored with its reason and shown on `/rejected`. A vetoed proposal is excluded from the ranking. A darkened floor returns 410, and its receipt stays public.
+The user can veto an open proposal or darken a shipped floor by signing with the `VETO_ADDRESS` wallet at `/veto`. Each veto is stored with its reason and shown on `/rejected`. A vetoed proposal is excluded from the ranking. A darkened floor returns 410 on its next load, at its direct URL too, because floors are served `no-store` (section 6). Its receipt stays public.
 
 ## 7. Votes
 
@@ -791,4 +794,6 @@ This does not replace Step 2. The orchestrator still builds every task from the 
 | Overtime | Cut at design, because it needs Vercel Pro | Derived from the $5 limit |
 | Host | Vercel Hobby, Neon via Marketplace, GitHub Actions | Architect, approved in design section 1 |
 | Floor format | One self-contained HTML file in Postgres | Architect, approved in design section 1 |
+| Floor caching after a veto | `no-store`: a veto reaches the next load, at one function call and one database read per floor load. Chosen over a short `max-age`, which saves little on a floor viewed once and leaves a window a judge could see | Architect, amendment 2026-11-07, on the user's report |
+| Who may frame a floor | `'self'` plus a validated `NEXT_PUBLIC_SITE_ORIGIN`, never request headers. `'self'` instead of a localhost branch, because the browser evaluates it and it needs no guess about dev or production | Architect, amendment 2026-11-07, on the user's report |
 | Name | Night Crew. A search found no product with this name; the nearest was NIGHTSHIFT ($SHIFT), seen only on DexScreener listings | Brief's working title, user did not object |

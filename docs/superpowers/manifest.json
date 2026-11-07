@@ -540,6 +540,48 @@
       "status": "pending"
     },
     {
+      "id": "floor:8",
+      "subsystem": "floor",
+      "title": "Amendment: a veto reaches cached floors, and framing ignores request headers",
+      "plan": "docs/superpowers/plans/2026-11-06-floor.md",
+      "depends_on": [
+        "floor:1",
+        "floor:3",
+        "floor:7",
+        "foundation:5"
+      ],
+      "effort": "high",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [
+          "lib/floor-gate/headers.ts",
+          "app/f/[hash]/route.ts",
+          "tests/floor-route.test.ts"
+        ],
+        "test": [
+          "tests/floor-serving-browser.test.ts"
+        ]
+      },
+      "provides": [
+        "lib/floor-gate/headers.ts: floorFrameAncestors(configured: string | undefined): string; floorHeaders sends Cache-Control: no-store; app/f/[hash]/route.ts: frame-ancestors from configuration only, never from request headers"
+      ],
+      "requires": [
+        "lib/floor-gate/headers.ts: FLOOR_FRAME_SANDBOX; floorCsp(scriptHashes, frameAncestor): string; floorHeaders(scriptHashes, frameAncestor): Record<string, string>",
+        "app/f/[hash]/route.ts: GET serves a floor under floorHeaders; proxy.ts: routeByHost(pathname, host, floorsOrigin)",
+        "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
+        "tests/helpers/chrome.ts: chromePath(): string; launchChrome(): Promise<Browser>"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/floor-route.test.ts tests/floor-serving-browser.test.ts tests/assemble.test.ts",
+        "expect": "Test Files  3 passed (3)"
+      },
+      "commit": "fix: let a veto reach cached floors, and stop trusting request headers for framing",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
       "id": "pipeline:1",
       "subsystem": "pipeline",
       "title": "Vote weight, tally and snapshot block",
@@ -2043,7 +2085,8 @@
       "depends_on": [
         "launch:7",
         "launch:8",
-        "launch:9"
+        "launch:9",
+        "launch:17"
       ],
       "effort": "low",
       "model_tier": "top",
@@ -2058,7 +2101,8 @@
       "requires": [
         "Human result: rehearsals r1 and r2 finished, with real costs recorded",
         "Human result: at least 5 seeded proposals are open",
-        "Human result: the app is live on a public URL"
+        "Human result: the app is live on a public URL",
+        "Human result: the live site serves floors no-store, framed only by its own origin"
       ],
       "gate": {
         "run": "gh variable get SHIFTS_ARMED",
@@ -2250,6 +2294,41 @@
       "commit": "chore: set the judging-night model",
       "human_gate": true,
       "gate_profile": "secret",
+      "allow_empty": true,
+      "status": "pending"
+    },
+    {
+      "id": "launch:17",
+      "subsystem": "launch",
+      "title": "Amendment: prove the floor fix on the live site, before arming",
+      "plan": "docs/superpowers/plans/2026-11-06-launch.md",
+      "depends_on": [
+        "floor:8",
+        "launch:7",
+        "launch:9"
+      ],
+      "effort": "low",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [],
+        "test": []
+      },
+      "provides": [
+        "Human result: the live site serves floors no-store, framed only by its own origin"
+      ],
+      "requires": [
+        "lib/floor-gate/headers.ts: floorFrameAncestors(configured: string | undefined): string; floorHeaders sends Cache-Control: no-store; app/f/[hash]/route.ts: frame-ancestors from configuration only, never from request headers",
+        "Human result: rehearsals r1 and r2 finished, with real costs recorded",
+        "Human result: the app is live on a public URL"
+      ],
+      "gate": {
+        "run": "node -e \"(async()=>{const s=new URL(process.env.SITE_URL).origin;const t=await(await fetch(s+'/')).text();const slugs=['r1','r2',...[...t.matchAll(/\\/floors\\/(\\w+)/g)].map((m)=>m[1])];let h=null;for(const g of slugs){const m=(await(await fetch(s+'/floors/'+g)).text()).match(/\\/f\\/(0x[0-9a-f]+)/);if(m){h=m[1];break}}if(!h){console.log('NO FLOOR ON THE SITE');process.exit(1)}const r=await fetch(s+'/f/'+h,{headers:{'x-forwarded-host':'evil.example'}});const c=r.headers.get('cache-control')||'';const a=((r.headers.get('content-security-policy')||'').match(/frame-ancestors ([^;]*)/)||[])[1]||'';const ok=r.status===200&&c==='no-store'&&a.split(' ')[0]===s&&!a.includes('evil');console.log(ok?'FLOOR HEADERS OK':'FLOOR HEADERS WRONG: status '+r.status+', cache-control '+c+', frame-ancestors '+a);process.exit(ok?0:1)})()\"",
+        "expect": "FLOOR HEADERS OK"
+      },
+      "commit": "chore: prove the floor fix on the live site",
+      "human_gate": true,
+      "gate_profile": "deploy",
       "allow_empty": true,
       "status": "pending"
     }
