@@ -45,3 +45,4 @@ One line per dispatch, for the routing audit. Routing is in the tollgate report.
 | frontend:3 | standard | claude-sonnet-5-5 | high | executor-high | worktree | done, b09dd02. Wallet plural and CSS fixes from the printed code, reviewed |
 | frontend:4 | top | claude-opus-5-5 | high | executor-high | worktree | done, 5e20e8f. Gate passed on floors/1 and floors/3. Stage wrappers added from the printed code, reviewed |
 | launch:6 | human gate | not dispatched | low | run by the user | their shell | done. Secret OPENROUTER_API_KEY set. Variables CREW_BUILD_MODEL anthropic/claude-sonnet-5.5, CREW_SHIFT_CAP_CENTS 60, CREW_TOTAL_BUDGET_CENTS 440 and VETO_ADDRESS set. Neither fallback setting is set |
+| launch:4 | human gate | not dispatched | low | run by the user | their shell | done. Secret DATABASE_URL on GitHub, confirmed by name. User reports db:migrate done, and set the Vercel variables |
