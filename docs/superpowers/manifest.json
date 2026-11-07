@@ -548,7 +548,8 @@
         "floor:1",
         "floor:3",
         "floor:7",
-        "foundation:5"
+        "foundation:5",
+        "votes:5"
       ],
       "effort": "high",
       "model_tier": "top",
@@ -557,7 +558,9 @@
         "modify": [
           "lib/floor-gate/headers.ts",
           "app/f/[hash]/route.ts",
-          "tests/floor-route.test.ts"
+          "tests/floor-route.test.ts",
+          "app/api/floors/[slug]/screenshot/route.ts",
+          "tests/api-public.test.ts"
         ],
         "test": [
           "tests/floor-serving-browser.test.ts"
@@ -570,11 +573,12 @@
         "lib/floor-gate/headers.ts: FLOOR_FRAME_SANDBOX; floorCsp(scriptHashes, frameAncestor): string; floorHeaders(scriptHashes, frameAncestor): Record<string, string>",
         "app/f/[hash]/route.ts: GET serves a floor under floorHeaders; proxy.ts: routeByHost(pathname, host, floorsOrigin)",
         "lib/db.ts: type Statement = { sql: string; params?: unknown[] }; type Db = { query<T>(sql, params?): Promise<{ rows: T[] }>; batch(statements): Promise<void> }; memoryDb(): Promise<Db>; neonDb(url): Db; getDb(): Promise<Db>; setDb(db): void; applyMigrations(db): Promise<void>",
-        "tests/helpers/chrome.ts: chromePath(): string; launchChrome(): Promise<Browser>"
+        "tests/helpers/chrome.ts: chromePath(): string; launchChrome(): Promise<Browser>",
+        "app/api/waitlist/route.ts: POST; app/api/receipts/[slug]/[part]/route.ts: GET; app/api/floors/[slug]/screenshot/route.ts: GET"
       ],
       "gate": {
-        "run": "npx vitest run tests/floor-route.test.ts tests/floor-serving-browser.test.ts tests/assemble.test.ts",
-        "expect": "Test Files  3 passed (3)"
+        "run": "npx vitest run tests/floor-route.test.ts tests/floor-serving-browser.test.ts tests/assemble.test.ts tests/api-public.test.ts",
+        "expect": "Test Files  4 passed (4)"
       },
       "commit": "fix: let a veto reach cached floors, and stop trusting request headers for framing",
       "human_gate": false,
