@@ -1,0 +1,168 @@
+name: shift
+
+on:
+  schedule:
+    # GitHub's scheduler can run late or drop a run. Claiming a shift twice does nothing.
+    - cron: "0 22 * * *"
+    - cron: "20 22 * * *"
+    - cron: "40 22 * * *"
+  workflow_dispatch:
+    inputs:
+      label:
+        description: "off-schedule or rehearsal"
+        required: true
+        type: choice
+        options: [off-schedule, rehearsal]
+      reason:
+        description: "Why this shift is running. Shown on the receipt."
+        required: true
+        type: string
+      rehearsal_proposal:
+        description: "The proposal text, for a rehearsal only"
+        required: false
+        type: string
+
+concurrency:
+  group: shift
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  close:
+    if: vars.SHIFTS_ARMED == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      claimed: ${{ steps.close.outputs.claimed }}
+      run_crew: ${{ steps.close.outputs.run_crew }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsx db/migrate.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - id: close
+        run: npx tsx crew/close.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BASE_RPC_URL: ${{ vars.BASE_RPC_URL }}
+          CREW_SHIFT_CAP_CENTS: ${{ vars.CREW_SHIFT_CAP_CENTS }}
+          CREW_TOTAL_BUDGET_CENTS: ${{ vars.CREW_TOTAL_BUDGET_CENTS }}
+          VETO_ADDRESS: ${{ vars.VETO_ADDRESS }}
+          SHIFT_LABEL: ${{ inputs.label }}
+          SHIFT_REASON: ${{ inputs.reason }}
+          REHEARSAL_PROPOSAL: ${{ inputs.rehearsal_proposal }}
+      - if: steps.close.outputs.claimed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: shift-input
+          path: shift-work/shift-input.json
+          include-hidden-files: true
+
+  crew:
+    needs: close
+    if: needs.close.outputs.run_crew == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+    outputs:
+      has_floor: ${{ steps.crew.outputs.has_floor }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: shift-input
+          path: shift-work
+      - id: crew
+        run: npx tsx crew/crew.ts
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          CREW_BUILD_MODEL: ${{ vars.CREW_BUILD_MODEL }}
+          CREW_BUILD_TRANSPORT: ${{ vars.CREW_BUILD_TRANSPORT }}
+          CREW_STRUCTURED_MODE: ${{ vars.CREW_STRUCTURED_MODE }}
+          CREW_SHIFT_CAP_CENTS: ${{ vars.CREW_SHIFT_CAP_CENTS }}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crew-output
+          path: shift-work/crew-output
+          if-no-files-found: ignore
+
+  verify:
+    needs: [close, crew]
+    if: needs.crew.outputs.has_floor == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: shift-input
+          path: shift-work
+      - uses: actions/download-artifact@v4
+        with:
+          name: crew-output
+          path: shift-work/crew-output
+      - run: npx tsx crew/verify.ts
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-output
+          path: shift-work/verify-output
+          if-no-files-found: ignore
+
+  publish:
+    needs: [close, crew, verify]
+    if: always() && needs.close.outputs.claimed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: shift-input
+          path: shift-work
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: crew-output
+          path: shift-work/crew-output
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: verify-output
+          path: shift-work/verify-output
+      - run: npx tsx crew/publish.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ATTESTER_PRIVATE_KEY: ${{ secrets.ATTESTER_PRIVATE_KEY }}
+          BASE_RPC_URL: ${{ vars.BASE_RPC_URL }}
+          EAS_SCHEMA_UID: ${{ vars.EAS_SCHEMA_UID }}
+          VETO_ADDRESS: ${{ vars.VETO_ADDRESS }}
