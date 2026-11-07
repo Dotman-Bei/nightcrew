@@ -42,7 +42,7 @@ Stack: Next.js, TypeScript, Postgres (Neon), viem and wagmi on Base, EAS attesta
 
 ### Product screenshot
 
-`docs/gates/evidence/nightcrew-tower-1600x900.png` (PNG, 1600x900, 171 KB, landscape, from the live tower with 3 floors lit)
+`docs/gates/evidence/nightcrew-tower-1600x900.png` (PNG, 1600x900, 171 KB, landscape, from the live tower: its window shows floors 2 and 3, and the counter reads "Floors lit 3")
 
 ### Repo URL
 
