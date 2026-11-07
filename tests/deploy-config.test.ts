@@ -13,7 +13,8 @@ describe("the deploy config", () => {
   });
   it("lists every env var by name only", () => {
     const example = readFileSync(".env.example", "utf8");
-    for (const name of ["ANTHROPIC_API_KEY", "ATTESTER_PRIVATE_KEY", "DATABASE_URL", "FLOORS_ORIGIN", "RATE_LIMIT_SALT", "VETO_ADDRESS"]) expect(example).toContain(`${name}=\n`);
+    for (const name of ["OPENROUTER_API_KEY", "ATTESTER_PRIVATE_KEY", "DATABASE_URL", "FLOORS_ORIGIN", "RATE_LIMIT_SALT", "VETO_ADDRESS"]) expect(example).toContain(`${name}=\n`);
+    expect(example).not.toContain("ANTHROPIC_API_KEY");
     expect(example).not.toMatch(/=\S/);
   });
 });
