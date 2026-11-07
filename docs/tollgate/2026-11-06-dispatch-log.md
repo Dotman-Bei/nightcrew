@@ -28,3 +28,4 @@ One line per dispatch, for the routing audit. Routing is in the tollgate report.
 | pipeline:15 | top | claude-opus-5-5 | medium | executor-medium | worktree | done, ae71699 |
 | votes:1 | top | claude-opus-5-5 | high | executor-high | worktree | done, 9103dac |
 | votes:6 | standard | claude-sonnet-5-5 | medium | executor-high | worktree | done, 103076d |
+| foundation:3 | human gate | not dispatched | low | run by the user | their shell | PROBE RESULT: ok, 2026-11-07. Spent 1.009 cents. Budget figure 440. Streamed cost comes from the response. |
