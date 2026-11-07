@@ -59,3 +59,4 @@ One line per dispatch, for the routing audit. Routing is in the tollgate report.
 | launch:7 | human gate | not dispatched | low | run by the user | GitHub Actions | done, 1f1ca43. r1 Sonnet 10 cents shipped, r2 Haiku 1 cent shipped, both attested. r1's first attempt failed in close on a malformed DATABASE_URL secret, re-set from the file. Settings back to Sonnet and 60 |
 | launch:17 | human gate | not dispatched | low | run by the user | public pages | done, de4d3db. FLOOR HEADERS OK, re-run by the orchestrator |
 | launch:10 | human gate | not dispatched | low | run by the user | GitHub | done, 282cca2. SHIFTS_ARMED true. Known risk accepted: the frame-removal gap, to be fixed before Sun 8 Nov 22:00 UTC |
+| launch:13 | human gate | not dispatched | low | run by the user | GitHub Actions | done, 4ebcdbb. Run Sat 12:46 UTC, ahead of the Sunday slot. Floor 1 shipped, 10 cents, attested |
