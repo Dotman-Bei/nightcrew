@@ -53,3 +53,4 @@ One line per dispatch, for the routing audit. Routing is in the tollgate report.
 | frontend:8 | top | claude-opus-5-5 | low | executor-medium | worktree | done, b338003. Executor stopped with the session mid-fix, with the gate failing. Orchestrator restored the printed code, which passes |
 | frontend:9 | standard | claude-sonnet-5-5 | low | executor-high | worktree | done, 2779538. Test-only task, so no red step |
 | launch:2 | standard | claude-sonnet-5-5 | medium | executor-high | worktree | done, d28cd4c. Replaces the workspace stub README, as the stub said. PowerShell gate run by the orchestrator: PASS |
+| launch:9 | human gate | not dispatched | low | run by the user | Vercel | done, b4b1e49. https://nightcrew-gray.vercel.app, gate LIVE, reads Neon. Site origin not yet confirmed: launch:17 proves it |
