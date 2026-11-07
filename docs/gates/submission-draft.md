@@ -2,7 +2,7 @@
 
 The platform form, pre-answered. File at https://app.vibestarter.xyz/vibeathon/submit, with the application wallet connected. The page already shows "Entrant: LINKED". The user files it; it stays editable until Mon 2026-11-09 22:00 UTC. Target filing: Mon 2026-11-09 12:00 UTC.
 
-Build-time facts resolved by the gate concierge's closing pass, Sat 2026-11-07, from the live site and the public receipts. Evidence and open flags: `docs/gates/2026-11-07-gate-ledger.md`.
+Build-time facts resolved by the gate concierge's closing pass, Sat 2026-11-07, from the live site and the public receipts, and refreshed at about 16:00 UTC: 4 floors, all attested, one real wallet vote, frame-removal fix deployed. Evidence and open flags: `docs/gates/2026-11-07-gate-ledger.md`.
 
 ## Required fields
 
@@ -24,17 +24,17 @@ Night Crew is an AI dev crew that $VIBES holders command. Any wallet proposes a 
 
 It's for token communities with holders but no active developer. $VIBES is the first.
 
-**Try this first:** open the tower and click the newest lit floor. It's a working tool built from a one-sentence proposal, running in a locked sandbox. Then click "See the receipt" for the vote tally, the agent's full transcript, the diff, the test results, what the inference cost, and its attestation status on Base.
+**Try this first:** open the tower and click the newest lit floor. It's a working tool built from a one-sentence proposal, running in a locked sandbox. Then click "See the receipt" for the vote tally, the agent's full transcript, the diff, the test results, what the inference cost, and its attestation on Base.
 
 To vote, open "Vote tonight" and sign one message. It costs no gas, and a wallet with no $VIBES still counts at minimal weight, so you can try it with any wallet.
 
-Floors on record at filing: 3 (shifts 1, 2 and 3). All three are off-schedule shifts on seeded proposals, with no wallet votes yet. Shift 1 is attested on Base; shifts 2 and 3 are pending attestation. The first scheduled shift runs Sat 7 Nov at 22:00 UTC.
+Floors on record at filing: 4 (shifts 1 to 4). All four are off-schedule shifts on seeded proposals, and all four are attested on Base. A real wallet has signed a vote on the live site, and the tower reads "Wallets tonight 1"; the four receipts show 0 wallets because their shifts closed before that vote. The first scheduled shift runs Sat 7 Nov at 22:00 UTC.
 
 ### Built with
 
 Built with Claude Code, by Claude agents working from a written spec one tested task at a time: an architect on Claude Opus 5.5 wrote the spec, plans and task manifest, and an orchestrator dispatched a fresh subagent per task and proved each task's gate before committing it.
 
-Claude agents also run the product's own nightly shifts, reached through OpenRouter. Triage and review run on Claude Haiku 5.5 with no working tools. The build agent runs on Claude Sonnet 5.5, in a small tool loop in a GitHub Actions job. It has three tools: write one of two named files in a temp folder, read a file in that folder, and run the static check. It has no shell and no network, and it stops at hard limits on turns, tokens, spend and time. That job holds the OpenRouter key, so its boundary is the tool set: no tool can reach the key, and nothing in that job runs what the agent writes. A separate job with no secrets then runs the floor in real Chrome against a fake wallet. Every shift publishes its own transcript and its cost as OpenRouter reported it.
+Claude agents also run the product's own nightly shifts, reached through OpenRouter. Triage and review run on Claude Haiku 5.5 with no working tools. The build agent runs on Claude Sonnet 5.5, in a small tool loop in a GitHub Actions job. It has three tools: write one of two named files in a temp folder, read a file in that folder, and run the static check. It has no shell and no network, and it stops at hard limits on turns, tokens, spend and time. That job holds the OpenRouter key, so its boundary is the tool set: no tool can reach the key, and nothing in that job runs what the agent writes. A separate job with no secrets then runs the floor in real Chrome against a fake wallet. On the live site each floor runs in a sandboxed frame, and a floor that navigates itself away is removed from the page. Every shift publishes its own transcript and its cost as OpenRouter reported it.
 
 Stack: Next.js, TypeScript, Postgres (Neon), viem and wagmi on Base, EAS attestations, Claude through OpenRouter, Playwright with Chrome, GitHub Actions, Vercel. Frontend built with the design-taste-frontend skill.
 
@@ -42,7 +42,7 @@ Stack: Next.js, TypeScript, Postgres (Neon), viem and wagmi on Base, EAS attesta
 
 ### Product screenshot
 
-`docs/gates/evidence/nightcrew-tower-1600x900.png` (PNG, 1600x900, 171 KB, landscape, from the live tower: its window shows floors 2 and 3, and the counter reads "Floors lit 3")
+`docs/gates/evidence/nightcrew-tower-1600x900.png` (PNG, 1600x900, 171 KB, landscape, from the live tower: its window shows floors 2 and 3, and the counter reads "Floors lit 3". Taken before shift 4, so it is one floor behind the text)
 
 ### Repo URL
 
