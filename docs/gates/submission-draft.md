@@ -24,15 +24,15 @@ Night Crew is an AI dev crew that $VIBES holders command. Any wallet proposes a 
 
 It's for token communities with holders but no active developer. $VIBES is the first.
 
-**Try this first:** open the tower and click the newest lit floor. It's a working tool someone asked for in one sentence, running in a locked sandbox. Then click "See the receipt" for the vote tally, the agent's full transcript, the diff, the test results, what the inference cost, and the attestation on Base.
+**Try this first:** open the tower and click the newest lit floor. It's a working tool built from a one-sentence proposal, running in a locked sandbox. Then click "See the receipt" for the vote tally, the agent's full transcript, the diff, the test results, what the inference cost, and its attestation status on Base.
 
 To vote, open "Vote tonight" and sign one message. It costs no gas, and a wallet with no $VIBES still counts at minimal weight, so you can try it with any wallet.
 
-Floors on record at filing: 3 (shifts 1, 2 and 3). All three are off-schedule shifts on seeded proposals, with no wallet votes yet. Shift 1 is attested on Base; shifts 2 and 3 are pending attestation and will attest at the next publish. The first scheduled shift runs Sat 7 Nov at 22:00 UTC.
+Floors on record at filing: 3 (shifts 1, 2 and 3). All three are off-schedule shifts on seeded proposals, with no wallet votes yet. Shift 1 is attested on Base; shifts 2 and 3 are pending attestation. The first scheduled shift runs Sat 7 Nov at 22:00 UTC.
 
 ### Built with
 
-Built with Claude Code, by Claude agents working from a written spec one tested task at a time: an architect on Claude Opus 5.5 wrote the spec, plans and task manifest, and an orchestrator dispatched a fresh subagent per task and proved each task's gate before committing it. The spec, plans and manifest are in the repo.
+Built with Claude Code, by Claude agents working from a written spec one tested task at a time: an architect on Claude Opus 5.5 wrote the spec, plans and task manifest, and an orchestrator dispatched a fresh subagent per task and proved each task's gate before committing it.
 
 Claude agents also run the product's own nightly shifts, reached through OpenRouter. Triage and review run on Claude Haiku 5.5 with no working tools. The build agent runs on Claude Sonnet 5.5, in a small tool loop in a GitHub Actions job. It has three tools: write one of two named files in a temp folder, read a file in that folder, and run the static check. It has no shell and no network, and it stops at hard limits on turns, tokens, spend and time. That job holds the OpenRouter key, so its boundary is the tool set: no tool can reach the key, and nothing in that job runs what the agent writes. A separate job with no secrets then runs the floor in real Chrome against a fake wallet. Every shift publishes its own transcript and its cost as OpenRouter reported it.
 
@@ -46,7 +46,7 @@ Stack: Next.js, TypeScript, Postgres (Neon), viem and wagmi on Base, EAS attesta
 
 ### Repo URL
 
-Blank: the repo is private and the form does not require it. https://github.com/Dotman-Bei/nightcrew goes here only if the user chooses to flip it public.
+https://github.com/Dotman-Bei/nightcrew
 
 ### Project X handle
 
