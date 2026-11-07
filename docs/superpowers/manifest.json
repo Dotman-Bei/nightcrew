@@ -1819,6 +1819,48 @@
       "status": "pending"
     },
     {
+      "id": "frontend:10",
+      "subsystem": "frontend",
+      "title": "Amendment: create the floor frame after hydration, so every load is counted",
+      "plan": "docs/superpowers/plans/2026-11-06-frontend.md",
+      "depends_on": [
+        "floor:1",
+        "floor:3",
+        "floor:8",
+        "frontend:4"
+      ],
+      "effort": "medium",
+      "model_tier": "top",
+      "files": {
+        "create": [],
+        "modify": [
+          "components/floor-frame.tsx"
+        ],
+        "test": [
+          "tests/floor-frame-browser.test.ts"
+        ]
+      },
+      "provides": [
+        "components/floor-frame.tsx: FloorFrame creates its frame only after hydration; tests/floor-frame-browser.test.ts"
+      ],
+      "requires": [
+        "app/floors/[slug]/page.tsx; components/floor-frame.tsx: FloorFrame({ src, title })",
+        "lib/floor-gate/assemble.ts: assembleFloor(rawHtml: string, snapshotJson: string | null): AssembledFloor; wrapFloorScript(code): string",
+        "lib/floor-gate/headers.ts: FLOOR_FRAME_SANDBOX; floorCsp(scriptHashes, frameAncestor): string; floorHeaders(scriptHashes, frameAncestor): Record<string, string>",
+        "lib/floor-gate/headers.ts: floorFrameAncestors(configured: string | undefined): string; floorHeaders sends Cache-Control: no-store; app/f/[hash]/route.ts: frame-ancestors from configuration only, never from request headers",
+        "lib/floor-gate/browser.ts: runBrowserGate(options: BrowserGateOptions): Promise<BrowserGateResult>; gatePassed(result): boolean; fakeProviderScript(mode); type ProviderMode",
+        "tests/helpers/chrome.ts: chromePath(): string; launchChrome(): Promise<Browser>"
+      ],
+      "gate": {
+        "run": "npx vitest run tests/floor-frame-browser.test.ts",
+        "expect": "Test Files  1 passed (1)"
+      },
+      "commit": "fix: create the floor frame after hydration, so every load is counted",
+      "human_gate": false,
+      "allow_empty": false,
+      "status": "pending"
+    },
+    {
       "id": "launch:1",
       "subsystem": "launch",
       "title": "Deploy config",
