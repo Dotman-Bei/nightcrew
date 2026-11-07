@@ -42,7 +42,7 @@ Stack: Next.js, TypeScript, Postgres (Neon), viem and wagmi on Base, EAS attesta
 
 ### Product screenshot
 
-`docs/gates/evidence/nightcrew-tower-1600x900.png` (PNG, 1600x900, 171 KB, landscape, from the live tower: its window shows floors 2 and 3, and the counter reads "Floors lit 3". Taken before shift 4, so it is one floor behind the text)
+`docs/gates/evidence/nightcrew-tower-4-floors-1600x900.png` (PNG, 1600x900, 171 KB, landscape, from the live tower at about 17:00 UTC Sat 7 Nov: its window shows floors 2 to 4, and the counters read "Floors lit 4" and "Wallets tonight 1")
 
 ### Repo URL
 
