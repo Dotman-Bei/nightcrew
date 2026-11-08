@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { KitScripts } from "@/components/kit-scripts";
 import { siteOrigin } from "@/lib/config";
+import { SITE_DESCRIPTION, SITE_NAME, pageMetadata } from "@/lib/site-meta";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin()),
-  title: "Night Crew: AI dev crew that token holders command",
-  description: "Holders sign to vote for a feature. At 22:00 UTC the crew builds the winner, tests it and ships it as a new floor of a public tower, with a receipt on Base.",
+  applicationName: SITE_NAME,
+  ...pageMetadata({ title: "Night Crew: AI dev crew that token holders command", description: SITE_DESCRIPTION, path: "/" }),
+  icons: {
+    icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   other: { "site-kind": "software", "page-type": "software" },
 };
 

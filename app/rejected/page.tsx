@@ -4,9 +4,10 @@ import { PageShell, Arrow } from "@/components/site-shell";
 import { getDb } from "@/lib/db";
 import { categoryWords, dayLabel } from "@/lib/format";
 import { rejectedView } from "@/lib/read-models";
+import { pageMetadata } from "@/lib/site-meta";
 
 export const revalidate = 30;
-export const metadata: Metadata = { title: "Night Crew: rejected proposals" };
+export const metadata: Metadata = pageMetadata({ title: "Night Crew: rejected proposals", description: "Every proposal the crew refused, and why. Triage rejects what a floor cannot do or should not do, and every veto is published with its reason.", path: "/rejected" });
 
 export default async function RejectedPage() {
   const rows = await rejectedView(await getDb());

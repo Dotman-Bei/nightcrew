@@ -9,9 +9,10 @@ import { floorsOnOwnHost } from "@/lib/config";
 import { getDb } from "@/lib/db";
 import { money } from "@/lib/format";
 import { builtView } from "@/lib/read-models";
+import { pageMetadata } from "@/lib/site-meta";
 
 export const revalidate = 30;
-export const metadata: Metadata = { title: "Night Crew: how it was built" };
+export const metadata: Metadata = pageMetadata({ title: "Night Crew: how it was built", description: "Claude agents built Night Crew from a written spec, one tested task at a time, and run its nightly shifts. How a floor is checked, and what stays open.", path: "/built" });
 
 function taskCount(): number {
   try {

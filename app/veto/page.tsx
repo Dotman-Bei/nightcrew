@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { PageShell } from "@/components/site-shell";
 import { ConnectPanel, VetoForm } from "@/components/wallet-actions";
 import { WalletRoot } from "@/components/wallet-root";
+import { pageMetadata } from "@/lib/site-meta";
 
-export const metadata: Metadata = { title: "Night Crew: veto", robots: { index: false, follow: false } };
+export const metadata: Metadata = { ...pageMetadata({ title: "Night Crew: veto", description: "Only the builder's wallet can sign a veto. It removes a proposal or darkens a floor, and the reason is published on the rejected page.", path: "/veto" }), robots: { index: false, follow: false } };
 
 export default function VetoPage() {
   return (

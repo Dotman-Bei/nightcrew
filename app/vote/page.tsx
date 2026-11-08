@@ -7,9 +7,10 @@ import { WalletRoot } from "@/components/wallet-root";
 import { getDb } from "@/lib/db";
 import { dayLabel, timeLabel, wholeNumber } from "@/lib/format";
 import { voteView, type ProposalRow } from "@/lib/read-models";
+import { pageMetadata } from "@/lib/site-meta";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Night Crew: vote on tonight's floor" };
+export const metadata: Metadata = pageMetadata({ title: "Night Crew: vote on tonight's floor", description: "Connect a wallet and sign one message to vote for tonight's feature, or propose one. It costs no gas and moves no funds.", path: "/vote" });
 
 type Props = { searchParams: Promise<{ page?: string }> };
 

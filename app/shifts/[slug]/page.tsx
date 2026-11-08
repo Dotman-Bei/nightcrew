@@ -7,6 +7,7 @@ import { EASSCAN_ATTESTATION_URL } from "@/lib/config";
 import { getDb } from "@/lib/db";
 import { categoryWords, dayLabel, money, shortAddress, shortHash, timeLabel, wholeNumber } from "@/lib/format";
 import { receiptView } from "@/lib/read-models";
+import { pageMetadata } from "@/lib/site-meta";
 
 export const revalidate = 30;
 
@@ -14,7 +15,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  return { title: `Night Crew: receipt for shift ${slug}` };
+  return pageMetadata({ title: `Night Crew: receipt for shift ${slug}`, description: `The public receipt for shift ${slug}: the vote tally, the triage decision, the agents' transcript, the tests, the cost and the attestation on Base.`, path: `/shifts/${slug}` });
 }
 
 const OUTCOME_WORDS = { shipped: "Shipped", failed: "Failed", dark: "Stayed dark" } as const;

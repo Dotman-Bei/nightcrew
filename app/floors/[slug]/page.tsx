@@ -7,6 +7,7 @@ import { floorDocumentUrl } from "@/lib/config";
 import { getDb } from "@/lib/db";
 import { dayLabel } from "@/lib/format";
 import { floorView } from "@/lib/read-models";
+import { pageMetadata } from "@/lib/site-meta";
 
 export const revalidate = 30;
 
@@ -14,7 +15,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  return { title: `Night Crew: floor ${slug}` };
+  return pageMetadata({ title: `Night Crew: floor ${slug}`, description: `Floor ${slug} of the Night Crew tower: the tool the crew shipped that night, running in its sandbox, or the reason the floor is dark.`, path: `/floors/${slug}` });
 }
 
 export default async function FloorPage({ params }: Props) {
