@@ -133,3 +133,4 @@ Timing rules: scene length follows the narration (audio-first). If a recorded cl
 | date | event | by |
 |---|---|---|
 | 2026-11-08 | scripted | demo-studio |
+| 2026-11-08 | approved (the user) | demo-studio |
