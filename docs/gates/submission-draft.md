@@ -1,6 +1,6 @@
 # Submission draft: Vibeathon 02 "Night shift"
 
-The platform form, pre-answered. File at https://app.vibestarter.xyz/vibeathon/submit, with the application wallet connected. The page already shows "Entrant: LINKED". The user files it; it stays editable until Mon 2026-11-09 22:00 UTC. Target filing: Mon 2026-11-09 12:00 UTC.
+The platform form, pre-answered. File at https://app.vibestarter.xyz/vibeathon/submit, with the application wallet connected. The page already shows "Entrant: LINKED". The user files it; it stays editable until Mon 2026-11-09 22:00 UTC. **Filed Sun 2026-11-08 06:23:05 UTC** with the text below. The longer "Built with" did not fit the platform's limit; see the ledger, C4.
 
 Build-time facts resolved by the gate concierge's closing pass, Sat 2026-11-07, from the live site and the public receipts, and refreshed at about 16:00 UTC: 4 floors, all attested, one real wallet vote, frame-removal fix deployed. Evidence and open flags: `docs/gates/2026-11-07-gate-ledger.md`.
 
@@ -12,7 +12,9 @@ Night Crew
 
 ### Tagline
 
-An AI dev crew for token holders: sign to vote for a feature, and by morning it ships as a working floor of a public tower, with a receipt on Base.
+An AI dev crew for token holders: sign to vote for a feature, and by morning it ships as a floor of a public tower, with a receipt on Base.
+
+(Platform limit: 140 characters. This is 139.)
 
 ### Live app URL
 
@@ -28,9 +30,15 @@ It's for token communities with holders but no active developer. $VIBES is the f
 
 To vote, open "Vote tonight" and sign one message. It costs no gas, and a wallet with no $VIBES still counts at minimal weight, so you can try it with any wallet.
 
-Floors on record at filing: 4 (shifts 1 to 4). All four are off-schedule shifts on seeded proposals, and all four are attested on Base. A real wallet has signed a vote on the live site, and the tower reads "Wallets tonight 1"; the four receipts show 0 wallets because their shifts closed before that vote. The first scheduled shift runs Sat 7 Nov at 22:00 UTC.
+Floors on record at filing: 5 (shifts 1 to 5). Shifts 1 to 4 were off-schedule; shift 5 was the first scheduled shift, Sat 7 Nov at 22:00 UTC, won by a proposal with 3 wallet votes. All five ran on seeded proposals, and all five are attested on Base.
 
 ### Built with
+
+Filed text (platform limit: 200 characters; this is 198):
+
+Claude Code agents built it from a written spec, one tested task at a time, with an Opus 5.5 architect. Nightly shifts run on Claude via OpenRouter: Sonnet 5.5 builds, Haiku 5.5 triages and reviews.
+
+Longer version, not filed (it was over the limit). The README carries the same detail:
 
 Built with Claude Code, by Claude agents working from a written spec one tested task at a time: an architect on Claude Opus 5.5 wrote the spec, plans and task manifest, and an orchestrator dispatched a fresh subagent per task and proved each task's gate before committing it.
 
@@ -42,7 +50,7 @@ Stack: Next.js, TypeScript, Postgres (Neon), viem and wagmi on Base, EAS attesta
 
 ### Product screenshot
 
-`docs/gates/evidence/nightcrew-tower-4-floors-1600x900.png` (PNG, 1600x900, 171 KB, landscape, from the live tower at about 17:00 UTC Sat 7 Nov: its window shows floors 2 to 4, and the counters read "Floors lit 4" and "Wallets tonight 1")
+`docs/gates/evidence/nightcrew-tower-4-floors-1600x900.png` (PNG, 1600x900, 171 KB, landscape, from the live tower at about 17:00 UTC Sat 7 Nov: its window shows floors 2 to 4, and the counters read "Floors lit 4" and "Wallets tonight 1"). Filed as is; the live site now shows 5 floors.
 
 ### Repo URL
 
@@ -50,7 +58,7 @@ https://github.com/Dotman-Bei/nightcrew
 
 ### Project X handle
 
-Leave blank unless the user wants to add one. The product has no X integration.
+@heisbei02 (entered by the user in the form)
 
 ### Tool chips
 
@@ -62,7 +70,7 @@ https://youtu.be/4LSovoe7UnM (1:34, recorded on the live site on Sun 8 Nov 2026 
 
 ### Fundable result link
 
-https://fundable.vibestarter.xyz/s/WDVXwKCAB5 (68/100, PROMISING, run on the live URL Sat 7 Nov 13:58 UTC)
+https://fundable.vibestarter.xyz/s/MLhUnRj7x5 (79/100 on nightcrew.suitz.xyz, receipt F-3NM2W, Sun 8 Nov 06:13 UTC, entered by the user). The filed entry shows it as "unverified": the platform could not check the score at filing. It replaces the earlier 68/100 run on the vercel.app URL (https://fundable.vibestarter.xyz/s/WDVXwKCAB5).
 
 ## Checks before filing
 
