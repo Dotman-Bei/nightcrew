@@ -124,12 +124,12 @@ Timing rules: scene length follows the narration (audio-first). If a recorded cl
 | field | value |
 |---|---|
 | Upload target + account | none, upload struck. The user uploads the rendered file themselves |
-| Title | Night Crew: vote tonight, live by morning (Vibeathon 02 demo) |
+| Title | Night Crew: vote tonight, live by morning (Vibeathon 02 demo). The uploaded video is titled "nightcrew demo 2026 11 08" (read from YouTube's public metadata); the user can rename it in Studio |
 | Description | Night Crew is an AI dev crew that token holders command. Wallets sign a free message to vote, with no gas. At 22:00 UTC the crew builds the winning proposal, tests it and ships it as a new floor of a public tower, with a receipt attested on Base. Recorded on the live site on 8 Nov 2026: https://nightcrew.suitz.xyz. Code: https://github.com/Dotman-Bei/nightcrew. Built for Vibeathon 02 "Night shift". An independent project, not affiliated with Vibestarter. Music: none. |
 | Tags | night crew, ai agents, claude code, base, eas attestation, token holders, vibeathon |
 | Visibility | unlisted (the user's call, as they upload it) |
-| URL | TBD |
-| Verified logged-out | TBD |
+| URL | https://youtu.be/4LSovoe7UnM |
+| Verified logged-out | 2026-11-08 06:10 UTC: redirects once, the watch page answers 200 and the public metadata returns the video; visibility not read |
 | Resolves | submission-draft demo video URL |
 
 ## 8 — Status ledger
@@ -145,3 +145,4 @@ Timing rules: scene length follows the narration (audio-first). If a recorded cl
 | 2026-11-08 | recorded (7/7 scenes) | demo-studio |
 | 2026-11-08 | assembled | demo-studio |
 | 2026-11-08 | QC passed [residuals: true peak −1.47 dBTP against the −1.5 target; S4 runs 17.2 s against 16 s because the quiz is real-time; S6 is on the receipt-link fallback; the outro QR was not optically scanned; the audio was not listened to by this seat; the caption strip and 972 px recording are a superseded edit awaiting the user's approval] | demo-studio |
+| 2026-11-08 | uploaded (https://youtu.be/4LSovoe7UnM) | demo-studio (upload done by the user) |

@@ -58,7 +58,7 @@ Claude Code, Claude
 
 ### Demo video URL
 
-Blank at filing. The user may add one later; the entry stays editable until the close.
+https://youtu.be/4LSovoe7UnM (1:34, recorded on the live site on Sun 8 Nov 2026 and uploaded by the user; it shows 5 floors, so it is newer than the 4-floor text above)
 
 ### Fundable result link
 
